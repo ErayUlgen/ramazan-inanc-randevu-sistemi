@@ -1,0 +1,298 @@
+- generic [ref=f1e2]:
+  - generic [ref=f1e6]:
+    - complementary "Yönetici menüsü" [ref=f1e46]:
+      - link "Müşteri randevu sayfasına dön" [ref=f1e47] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f1e50]:
+          - strong [ref=f1e51]: Ramazan İnanç
+          - generic [ref=f1e52]: Hair Art Studio
+      - navigation "Yönetici bölümleri" [ref=f1e53]:
+        - region "Operasyon" [ref=f1e54]:
+          - generic [ref=f1e56]:
+            - button "Randevular" [ref=f1e57] [cursor=pointer]
+            - button "Talepler" [ref=f1e61] [cursor=pointer]
+            - button "Bekleme listesi" [ref=f1e65] [cursor=pointer]
+            - button "Çalışma düzeni" [ref=f1e69] [cursor=pointer]
+        - region "Müşteri" [ref=f1e73]:
+          - generic [ref=f1e75]:
+            - button "Müşteriler" [ref=f1e76] [cursor=pointer]
+            - button "Değerlendirmeler" [ref=f1e80] [cursor=pointer]
+        - region "Salon" [ref=f1e84]:
+          - generic [ref=f1e86]:
+            - button "Hizmetler" [ref=f1e87] [cursor=pointer]
+            - button "Uzmanlar" [ref=f1e91] [cursor=pointer]
+        - region "Yönetim" [ref=f1e95]:
+          - generic [ref=f1e97]:
+            - button "Ekip erişimi" [ref=f1e98] [cursor=pointer]
+            - button "Raporlar" [ref=f1e102] [cursor=pointer]
+            - button "Ayarlar" [ref=f1e106] [cursor=pointer]
+      - generic [ref=f1e114]:
+        - strong [ref=f1e115]: Salon Sahibi
+        - generic [ref=f1e116]: İşletme sahibi
+    - banner [ref=f1e7]:
+      - generic [ref=f1e15]:
+        - generic [ref=f1e117]: Salon yönetimi
+        - strong [ref=f1e16]: Müşteriler
+      - generic [ref=f1e17]:
+        - button "Müşteri görünümü" [ref=f1e118] [cursor=pointer]
+        - 'button "Çıkış: yönetici oturumunu kapat" [ref=f1e18] [cursor=pointer]':
+          - generic [ref=f1e122]: Çıkış
+    - main [ref=f1e21]:
+      - generic [ref=f1e23]:
+        - generic [ref=f1e24]: Müşteri hafızası
+        - heading "Müşteriler" [level=1] [ref=f1e25]
+        - paragraph [ref=f1e26]: Telefon veya isimle müşteriyi bulun; ziyaret geçmişini ve salon içi notu tek yerde görün.
+      - generic [ref=f1e27]:
+        - generic [ref=f1e28]:
+          - generic [ref=f1e29]:
+            - generic [ref=f1e30]: Müşteri ara
+            - searchbox "Müşteri ara" [ref=f1e33]: Eray
+          - generic [ref=f1e123]:
+            - button "Eray Tasarım Testi +905555555555 Yeni müşteri" [ref=f1e124] [cursor=pointer]:
+              - generic [ref=f1e125]: ET
+              - generic [ref=f1e126]:
+                - strong [ref=f1e127]: Eray Tasarım Testi
+                - generic [ref=f1e128]: "+905555555555"
+              - emphasis [ref=f1e129]: Yeni müşteri
+            - button "Eray Ülgen +905392097056 3 son kayıt" [ref=f1e130] [cursor=pointer]:
+              - generic [ref=f1e131]: EÜ
+              - generic [ref=f1e132]:
+                - strong [ref=f1e133]: Eray Ülgen
+                - generic [ref=f1e134]: "+905392097056"
+              - emphasis [ref=f1e135]: 3 son kayıt
+            - button "Eray Ülgen +905493956262 3 son kayıt" [active] [ref=f1e136] [cursor=pointer]:
+              - generic [ref=f1e137]: EÜ
+              - generic [ref=f1e138]:
+                - strong [ref=f1e139]: Eray Ülgen
+                - generic [ref=f1e140]: "+905493956262"
+              - emphasis [ref=f1e141]: 3 son kayıt
+        - generic [ref=f1e39]:
+          - generic [ref=f1e142]:
+            - generic [ref=f1e143]: EÜ
+            - generic [ref=f1e144]:
+              - text: Müşteri profili
+              - heading "Eray Ülgen" [level=2] [ref=f1e145]
+              - link "+905493956262" [ref=f1e146] [cursor=pointer]:
+                - /url: tel:+905493956262
+            - button "Yeni randevu" [ref=f1e149] [cursor=pointer]
+            - button "Online rezervasyonu kapat" [ref=f1e152] [cursor=pointer]
+          - generic [ref=f1e153]:
+            - generic [ref=f1e154]:
+              - generic [ref=f1e155]: Toplam kayıt
+              - strong [ref=f1e156]: "19"
+            - generic [ref=f1e157]:
+              - generic [ref=f1e158]: Geçmiş ziyaret
+              - strong [ref=f1e159]: "7"
+            - generic [ref=f1e160]:
+              - generic [ref=f1e161]: Gelmedi
+              - strong [ref=f1e162]: "1"
+            - generic [ref=f1e163]:
+              - generic [ref=f1e164]: İptal
+              - strong [ref=f1e165]: "0"
+            - generic [ref=f1e166]:
+              - generic [ref=f1e167]: Son uzman
+              - strong [ref=f1e168]: Ramazan İnanç
+            - generic [ref=f1e169]:
+              - generic [ref=f1e170]: Online rezervasyon
+              - strong [ref=f1e171]: Açık
+          - generic [ref=f1e172]:
+            - heading "Salon içi not" [level=3] [ref=f1e173]
+            - textbox "Tercihler veya operasyon için gerekli kısa not…" [ref=f1e176]: asdasdö
+            - button "Notu kaydet" [disabled] [ref=f1e177]
+          - generic [ref=f1e178]:
+            - generic [ref=f1e179]:
+              - generic [ref=f1e180]:
+                - generic [ref=f1e181]: Salon hafızası
+                - heading "Bakım ve ziyaret bilgileri" [level=3] [ref=f1e182]
+              - generic [ref=f1e183]:
+                - generic [ref=f1e184]: 7 geçmiş ziyaret
+                - generic [ref=f1e185]: ₺7.250 tahmini
+            - tablist [ref=f1e186]:
+              - tab "Bakım profili" [selected] [ref=f1e187] [cursor=pointer]
+              - tab "Hizmet kayıtları" [ref=f1e190] [cursor=pointer]
+              - tab "Etiketler" [ref=f1e193] [cursor=pointer]
+            - generic [ref=f1e196]:
+              - paragraph [ref=f1e197]: Fotoğraf arşivi, güvenli production dosya depolaması yapılandırılana kadar kapalıdır. Müşteri fotoğrafları geçici veya tarayıcı içi depolamada tutulmaz.
+              - generic [ref=f1e198]:
+                - generic [ref=f1e199]: Stil tercihleri
+                - textbox "Stil tercihleri" [ref=f1e200]:
+                  - /placeholder: Kesim, şekillendirme ve görünüm tercihleri
+                  - text: saddsaa
+              - generic [ref=f1e201]:
+                - generic [ref=f1e202]: Kullanılmaması istenenler
+                - textbox "Kullanılmaması istenenler" [ref=f1e203]:
+                  - /placeholder: Ürün veya uygulama notu
+                  - text: dasdsasda
+              - generic [ref=f1e204]:
+                - generic [ref=f1e205]: Müşterinin bildirdiği hassasiyetler
+                - textbox "Müşterinin bildirdiği hassasiyetler" [ref=f1e206]:
+                  - /placeholder: Yalnızca müşterinin kendi beyanını yazın
+                  - text: dsaasdasa
+              - generic [ref=f1e207]:
+                - generic [ref=f1e208]: İletişim notu
+                - textbox "İletişim notu" [ref=f1e209]:
+                  - /placeholder: Arama veya mesajlaşma tercihi
+                  - text: dssad
+              - button "Profili kaydet" [ref=f1e210] [cursor=pointer]
+          - generic [ref=f1e213]:
+            - heading "Gelecek randevular 0" [level=3] [ref=f1e214]:
+              - text: Gelecek randevular
+              - generic [ref=f1e215]: "0"
+            - paragraph [ref=f1e216]: Kayıt bulunmuyor.
+          - generic [ref=f1e217]:
+            - heading "Geçmiş ziyaretler 19" [level=3] [ref=f1e218]:
+              - text: Geçmiş ziyaretler
+              - generic [ref=f1e219]: "19"
+            - article [ref=f1e220]:
+              - generic [ref=f1e221]:
+                - strong [ref=f1e222]: 31 Tem
+                - generic [ref=f1e223]: 12:00–13:00
+              - generic [ref=f1e224]:
+                - strong [ref=f1e225]: Anatomik Saç Kesimi
+                - generic [ref=f1e226]: Ramazan İnanç · 60 dk
+              - generic [ref=f1e227]: ₺900
+            - article [ref=f1e228]:
+              - generic [ref=f1e229]:
+                - strong [ref=f1e230]: 31 Tem
+                - generic [ref=f1e231]: 10:00–11:15
+              - generic [ref=f1e232]:
+                - strong [ref=f1e233]: Saç + Sakal Tasarımı
+                - generic [ref=f1e234]: Velihan Uluşan · 75 dk
+              - generic [ref=f1e235]: ₺1.250
+            - article [ref=f1e236]:
+              - generic [ref=f1e237]:
+                - strong [ref=f1e238]: 30 Tem
+                - generic [ref=f1e239]: 16:00–16:30
+              - generic [ref=f1e240]:
+                - strong [ref=f1e241]: Saç Yıkama & Şekillendirme
+                - generic [ref=f1e242]: Velihan Uluşan · 30 dk
+              - generic [ref=f1e243]: ₺450
+            - article [ref=f1e244]:
+              - generic [ref=f1e245]:
+                - strong [ref=f1e246]: 30 Tem
+                - generic [ref=f1e247]: 13:00–14:00
+              - generic [ref=f1e248]:
+                - strong [ref=f1e249]: Anatomik Saç Kesimi
+                - generic [ref=f1e250]: Ramazan İnanç · 60 dk
+              - generic [ref=f1e251]: ₺900
+            - article [ref=f1e252]:
+              - generic [ref=f1e253]:
+                - strong [ref=f1e254]: 29 Tem
+                - generic [ref=f1e255]: 14:00–15:00
+              - generic [ref=f1e256]:
+                - strong [ref=f1e257]: Anatomik Saç Kesimi
+                - generic [ref=f1e258]: Ramazan İnanç · 60 dk
+              - generic [ref=f1e259]: ₺900
+            - article [ref=f1e260]:
+              - generic [ref=f1e261]:
+                - strong [ref=f1e262]: 29 Tem
+                - generic [ref=f1e263]: 13:00–14:00
+              - generic [ref=f1e264]:
+                - strong [ref=f1e265]: Anatomik Saç Kesimi
+                - generic [ref=f1e266]: Ramazan İnanç · 60 dk
+              - generic [ref=f1e267]: ₺900
+            - article [ref=f1e268]:
+              - generic [ref=f1e269]:
+                - strong [ref=f1e270]: 29 Tem
+                - generic [ref=f1e271]: 13:00–14:15
+              - generic [ref=f1e272]:
+                - strong [ref=f1e273]: Saç + Sakal Tasarımı
+                - generic [ref=f1e274]: Mustafa Akpiliç · 75 dk
+              - generic [ref=f1e275]: ₺1.250
+            - article [ref=f1e276]:
+              - generic [ref=f1e277]:
+                - strong [ref=f1e278]: 29 Tem
+                - generic [ref=f1e279]: 12:00–13:00
+              - generic [ref=f1e280]:
+                - strong [ref=f1e281]: Anatomik Saç Kesimi
+                - generic [ref=f1e282]: Ramazan İnanç · 60 dk
+              - generic [ref=f1e283]: ₺900
+            - article [ref=f1e284]:
+              - generic [ref=f1e285]:
+                - strong [ref=f1e286]: 28 Tem
+                - generic [ref=f1e287]: 15:00–16:15
+              - generic [ref=f1e288]:
+                - strong [ref=f1e289]: Saç + Sakal Tasarımı
+                - generic [ref=f1e290]: Hikmet Çetin Aygördü · 75 dk
+              - generic [ref=f1e291]: ₺1.250
+            - article [ref=f1e292]:
+              - generic [ref=f1e293]:
+                - strong [ref=f1e294]: 28 Tem
+                - generic [ref=f1e295]: 12:00–13:00
+              - generic [ref=f1e296]:
+                - strong [ref=f1e297]: Anatomik Saç Kesimi
+                - generic [ref=f1e298]: Velihan Uluşan · 60 dk
+              - generic [ref=f1e299]: ₺900
+            - article [ref=f1e300]:
+              - generic [ref=f1e301]:
+                - strong [ref=f1e302]: 28 Tem
+                - generic [ref=f1e303]: 10:00–11:15
+              - generic [ref=f1e304]:
+                - strong [ref=f1e305]: Saç + Sakal Tasarımı
+                - generic [ref=f1e306]: Hikmet Çetin Aygördü · 75 dk
+              - generic [ref=f1e307]: ₺1.250
+            - article [ref=f1e308]:
+              - generic [ref=f1e309]:
+                - strong [ref=f1e310]: 27 Tem
+                - generic [ref=f1e311]: 17:00–18:45
+              - generic [ref=f1e312]:
+                - strong [ref=f1e313]: Anatomik Saç Kesimi + Fön
+                - generic [ref=f1e314]: Hikmet Çetin Aygördü · 105 dk
+              - generic [ref=f1e315]: ₺1.550
+            - article [ref=f1e316]:
+              - generic [ref=f1e317]:
+                - strong [ref=f1e318]: 27 Tem
+                - generic [ref=f1e319]: 16:00–17:15
+              - generic [ref=f1e320]:
+                - strong [ref=f1e321]: Saç + Sakal Tasarımı
+                - generic [ref=f1e322]: Velihan Uluşan · 75 dk
+              - generic [ref=f1e323]: ₺1.250
+            - article [ref=f1e324]:
+              - generic [ref=f1e325]:
+                - strong [ref=f1e326]: 26 Tem
+                - generic [ref=f1e327]: 12:00–13:15
+              - generic [ref=f1e328]:
+                - strong [ref=f1e329]: Saç + Sakal Tasarımı
+                - generic [ref=f1e330]: Hikmet Çetin Aygördü · 75 dk
+              - generic [ref=f1e331]: ₺1.250
+            - article [ref=f1e332]:
+              - generic [ref=f1e333]:
+                - strong [ref=f1e334]: 24 Tem
+                - generic [ref=f1e335]: 17:00–18:00
+              - generic [ref=f1e336]:
+                - strong [ref=f1e337]: Anatomik Saç Kesimi
+                - generic [ref=f1e338]: Ramazan İnanç · 60 dk
+              - generic [ref=f1e339]: ₺900
+            - article [ref=f1e340]:
+              - generic [ref=f1e341]:
+                - strong [ref=f1e342]: 24 Tem
+                - generic [ref=f1e343]: 17:00–18:00
+              - generic [ref=f1e344]:
+                - strong [ref=f1e345]: Anatomik Saç Kesimi
+                - generic [ref=f1e346]: Velihan Uluşan · 60 dk
+              - generic [ref=f1e347]: ₺900
+            - article [ref=f1e348]:
+              - generic [ref=f1e349]:
+                - strong [ref=f1e350]: 24 Tem
+                - generic [ref=f1e351]: 16:00–17:00
+              - generic [ref=f1e352]:
+                - strong [ref=f1e353]: Anatomik Saç Kesimi
+                - generic [ref=f1e354]: Ramazan İnanç · 60 dk
+              - generic [ref=f1e355]: ₺900
+            - article [ref=f1e356]:
+              - generic [ref=f1e357]:
+                - strong [ref=f1e358]: 24 Tem
+                - generic [ref=f1e359]: 15:00–16:00
+              - generic [ref=f1e360]:
+                - strong [ref=f1e361]: Anatomik Saç Kesimi
+                - generic [ref=f1e362]: Ramazan İnanç · 60 dk
+              - generic [ref=f1e363]: ₺900
+            - article [ref=f1e364]:
+              - generic [ref=f1e365]:
+                - strong [ref=f1e366]: 22 Tem
+                - generic [ref=f1e367]: 10:00–10:30
+              - generic [ref=f1e368]:
+                - strong [ref=f1e369]: Saç Yıkama & Şekillendirme
+                - generic [ref=f1e370]: Ramazan İnanç · 30 dk
+              - generic [ref=f1e371]: ₺450
+  - region "Notifications alt+T"

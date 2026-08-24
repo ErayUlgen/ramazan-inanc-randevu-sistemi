@@ -1,0 +1,24 @@
+Konu: 8. Gün Gün Sonu Raporu (23.07.2026)
+
+Merhaba Sayın Yetkili,
+
+Bugün Ramazan İnanç Hair Art Studio için geliştirilen web tabanlı randevu ve salon operasyon sistemi üzerinde çalışmalara devam edilmiştir. Önceki gün oluşturulan müşteri rezervasyonu, gerçek uygunluk, yönetici onayı ve güvenli bildirim temelinin üzerine; salonun günlük çalışma düzenini, müşteri hesaplarını ve boşalan saatlerin yeniden değerlendirilmesini kapsayan operasyon katmanları eklenmiştir.
+
+Salonun çalışma düzeninin yönetilebilmesi için haftalık çalışma aralıkları, özel günler ve geçici zaman blokları geliştirilmiştir. Şubenin belirli bir gün tamamen kapatılabilmesi veya farklı saatlerde çalışabilmesi; uzman bazında mola, eğitim, kişisel zaman ve müsait olmama bloklarının tanımlanabilmesi sağlanmıştır. Çalışma saatleri değiştirilirken gelecekteki randevuların yeni aralığın dışında kalması engellenmiş, takvim değişiklikleri transaction ve audit kayıtlarıyla güvence altına alınmıştır.
+
+Yönetici tarafındaki günlük operasyon merkezi genişletilmiştir. Telefon veya yüz yüze gelen müşteriler için manuel randevu oluşturma, müşteri ve katalog kayıtlarını yönetme, randevu bilgilerini güncelleme ve ziyaret durumunu planlandı, geldi, işlemde, tamamlandı veya gelmedi olarak takip etme işlevleri eklenmiştir. Randevu değişikliklerinde sürüm numarası kullanılarak eş zamanlı güncellemelerin birbirini ezmesi önlenmiş; işlem öncesi ve sonrası değerler operasyon kayıtlarında saklanmıştır.
+
+Müşteri tarafında iptal ve tarih-saat değişikliği talepleri oluşturulmuştur. Yeni saat önerisi yönetici kararına kadar geçici olarak ayrılmış; yönetici onayında randevu atomik biçimde taşınmış, reddedildiğinde ise önerilen saat yeniden kullanıma açılmıştır. Uygun saat bulunamayan günler için SMS doğrulamalı bekleme listesi hazırlanmış; müşteri hizmet, uzman, tarih ve saat aralığı tercihlerini bırakabilir hâle getirilmiştir. Boşalan saat için süreli teklif oluşturulması, teklifin kabulünde randevuya dönüştürülmesi ve süresi dolan teklifin kapasiteyi yeniden serbest bırakması sağlanmıştır.
+
+Kalıcı müşteri hesabı yapısı telefon ve SMS doğrulamasıyla devreye alınmıştır. İlk doğrulanmış rezervasyonla müşteri hesabının otomatik oluşması, cihazın 30 gün hatırlanması ve eski randevuların telefon numarası üzerinden hesaba bağlanması sağlanmıştır. Müşteri; işlem bekleyen, yaklaşan ve geçmiş randevularını ayrı bölümlerde görüntüleyebilmekte, randevu detayına erişebilmekte, profil ve SMS tercihini yönetebilmekte, uygun koşullarda iptal veya değişiklik talebi oluşturabilmekte ve takvim dosyası indirebilmektedir. Yönetici ve müşteri oturumları birbirinden ayrılarak aynı tarayıcıda eş zamanlı çalışmaları güvence altına alınmıştır.
+
+Canlı operasyon için yönetici ekranını yeni talep ve durum değişikliklerinde güncelleyen olay akışı, SMS sağlayıcı teslim durumlarını işleyen webhook, tekrar deneme kuralları, correlation kimliği ve standart API hata yanıtları eklenmiştir. Operasyon raporlarında randevu, bekleme listesi ve salon kapasitesine ilişkin temel göstergeler sunulmuştur.
+
+Çalışmanın sonunda çalışma saatleri ve özel gün önceliği, zaman bloğu çakışmaları, müşteri değişiklik talepleri, bekleme listesi teklifleri, yönetici ve müşteri oturumlarının ayrılığı, OTP süre ve deneme sınırları, SMS teslim durumu ve eski randevuların hesaba bağlanması hedefli testlerle kontrol edilmiştir. Backend ve frontend üretim derlemeleri başarıyla tamamlanmış; masaüstü ve dar ekran müşteri görünümleri doğrulanmıştır.
+
+Yapılan çalışmaların açıklamalı ekran görüntüleri, veri akışları, seçilmiş kaynak kod bölümleri ve kontrol sonuçları **8. Gün Gün Sonu Eki** dosyasında sunulmuştur.
+
+Saygılarımla,
+
+Eray Ülgen
+Pamukkale Üniversitesi - Bilgisayar Mühendisliği Stajyeri

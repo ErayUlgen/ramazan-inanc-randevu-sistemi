@@ -1,0 +1,85 @@
+:where(html) {
+  color: var(--ri-ink);
+  background: var(--ri-canvas);
+  font-family: var(--ri-font-body);
+  font-size: 16px;
+}
+
+:where(body, button, input, select, textarea) {
+  font-family: var(--ri-font-body);
+}
+
+:where(h1, h2, h3, h4, .ri-display) {
+  font-family: var(--ri-font-display);
+  font-variation-settings: "wdth" 96;
+  text-wrap: balance;
+}
+
+:where(p, li, dd) {
+  line-height: 1.5;
+}
+
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--ri-emerald) 34%, transparent);
+  outline-offset: 2px;
+}
+
+:where(button, input, select, textarea) {
+  border-radius: var(--ri-radius-control);
+}
+
+:where(button, a) {
+  touch-action: manipulation;
+}
+
+:where(button:not(:disabled), [role="button"]:not([aria-disabled="true"])) {
+  cursor: pointer;
+}
+
+:where(button:disabled, [aria-disabled="true"]) {
+  cursor: not-allowed;
+}
+
+::selection {
+  background: var(--ri-emerald-soft);
+  color: var(--ri-ink-strong);
+}
+
+.ri-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  margin: -1px;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 627px) {
+  :where(button, a, input, select, textarea) {
+    min-height: 44px;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  :where(button, a, [role="button"]) {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

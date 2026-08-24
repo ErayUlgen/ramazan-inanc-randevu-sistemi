@@ -1,0 +1,204 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --background: var(--ri-canvas);
+  --foreground: var(--ri-ink);
+  --card: var(--ri-surface);
+  --card-foreground: var(--ri-ink);
+  --popover: var(--ri-surface);
+  --popover-foreground: var(--ri-ink);
+  --primary: var(--ri-action);
+  --primary-foreground: var(--ri-action-foreground);
+  --secondary: var(--ri-surface-subtle);
+  --secondary-foreground: var(--ri-ink);
+  --muted: var(--ri-canvas-strong);
+  --muted-foreground: var(--ri-muted);
+  --accent: var(--ri-primary-soft);
+  --accent-foreground: var(--ri-primary-hover);
+  --destructive: var(--ri-danger);
+  --border: var(--ri-border);
+  --input: var(--ri-border-strong);
+  --ring: var(--ri-primary);
+  --radius: var(--ri-radius-control);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 0;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.route-loader {
+  display: grid;
+  min-height: 100dvh;
+  place-content: center;
+  place-items: center;
+  gap: 12px;
+  color: var(--ri-ink);
+  background: var(--ri-canvas);
+}
+
+.route-loader span {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--ri-primary-border);
+  border-top-color: var(--ri-primary);
+  border-radius: 50%;
+  animation: route-loader-spin 0.75s linear infinite;
+}
+
+.route-loader strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@keyframes route-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.app-error-boundary {
+  display: grid;
+  min-height: 100dvh;
+  padding: var(--space-3);
+  place-items: center;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--ri-stage-canvas) 96%, transparent),
+      color-mix(in srgb, var(--ri-stage-raised) 94%, transparent)
+    );
+  color: var(--ri-stage-ink);
+}
+
+.app-error-boundary__card {
+  width: min(100%, 560px);
+  padding: clamp(24px, 6vw, 48px);
+  border: 1px solid var(--ri-stage-border-strong);
+  border-radius: var(--ri-radius-stage);
+  background: var(--ri-stage-subtle);
+  box-shadow: var(--ri-shadow-focus);
+}
+
+.app-error-boundary__eyebrow {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: #67d9b6;
+  font-size: var(--ri-type-label);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.app-error-boundary h1 {
+  margin: 0;
+  font-size: var(--ri-type-h1);
+  line-height: 1.05;
+}
+
+.app-error-boundary p {
+  max-width: 48ch;
+  margin: var(--space-2) 0 0;
+  color: var(--ri-stage-ink-soft);
+  font-size: var(--ri-type-body-lg);
+}
+
+.app-error-boundary__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+}
+
+.app-error-boundary__actions :is(button, a) {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--ri-stage-border-strong);
+  border-radius: var(--ri-radius-control);
+  color: var(--ri-stage-ink);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.app-error-boundary__actions button {
+  border-color: #67d9b6;
+  color: var(--ri-ink-strong);
+  background: #67d9b6;
+}
+
+.app-error-boundary__actions a {
+  background: transparent;
+}
+
+.app-error-boundary__actions svg {
+  width: 18px;
+  height: 18px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+button,
+a,
+input,
+textarea,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}

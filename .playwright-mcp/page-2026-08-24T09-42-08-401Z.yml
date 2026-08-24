@@ -1,0 +1,4 @@
+- generic [ref=e2]:
+  - main "Ekran hazırlanıyor" [ref=e3]:
+    - strong [ref=e5]: Hazırlanıyor
+  - region "Notifications alt+T"

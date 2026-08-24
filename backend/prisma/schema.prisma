@@ -1,0 +1,1197 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum BookingStatus {
+  HOLD
+  PENDING_APPROVAL
+  CONFIRMED
+  REJECTED
+  CANCELLED
+  EXPIRED
+}
+
+enum BookingSource {
+  ONLINE
+  PHONE
+  ADMIN
+  WALK_IN
+}
+
+enum VisitStatus {
+  SCHEDULED
+  ARRIVED
+  IN_SERVICE
+  COMPLETED
+  NO_SHOW
+}
+
+enum ScheduleBlockKind {
+  BREAK
+  UNAVAILABLE
+  TRAINING
+  PERSONAL
+  BRANCH_BLOCK
+  OTHER
+}
+
+enum AuditActorType {
+  ADMIN
+  CUSTOMER
+  SYSTEM
+}
+
+enum NotificationChannel {
+  SMS
+}
+
+enum NotificationEventType {
+  BOOKING_RECEIVED
+  BOOKING_APPROVED
+  BOOKING_REJECTED
+  BOOKING_CANCELLED
+  BOOKING_CREATED_BY_ADMIN
+  BOOKING_RESCHEDULED
+  BOOKING_REMINDER
+  CHANGE_REQUEST_RECEIVED
+  CHANGE_REQUEST_APPROVED
+  CHANGE_REQUEST_REJECTED
+  WAITLIST_JOINED
+  WAITLIST_OFFERED
+  WAITLIST_OFFER_ACCEPTED
+  WAITLIST_OFFER_EXPIRED
+  REVIEW_REQUESTED
+  REVIEW_SUBMITTED
+  FORM_PENDING
+}
+
+enum NotificationStatus {
+  PENDING
+  PROCESSING
+  SENT
+  DELIVERED
+  RETRY_SCHEDULED
+  FAILED
+  SKIPPED
+  CANCELLED
+}
+
+enum AdminRole {
+  OWNER
+  RECEPTIONIST
+  PROFESSIONAL
+}
+
+enum BookingSeriesFrequency {
+  WEEKLY
+  BIWEEKLY
+  FOUR_WEEKLY
+  MONTHLY
+}
+
+enum BookingSeriesStatus {
+  ACTIVE
+  CANCELLED
+  COMPLETED
+}
+
+enum BookingOccupancyKind {
+  SERVICE
+  PRE_BUFFER
+  POST_BUFFER
+}
+
+enum ReviewSource {
+  CUSTOMER_ACCOUNT
+  PUBLIC_LINK
+}
+
+enum CustomerAuthPurpose {
+  ACCOUNT_LOGIN
+  BOOKING_CONFIRMATION
+}
+
+enum BookingChangeRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
+enum WaitlistEntryStatus {
+  ACTIVE
+  OFFERED
+  FULFILLED
+  EXPIRED
+  CANCELLED
+}
+
+enum WaitlistOfferStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+  FAILED
+}
+
+enum SlotRecoveryStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+enum FormTemplateStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum FormSubmissionStatus {
+  PENDING
+  SUBMITTED
+  REVIEWED
+}
+
+enum ConsentRecordType {
+  NOTICE_VIEWED
+  TRANSACTIONAL_ACKNOWLEDGEMENT
+  MARKETING_OPT_IN
+  MARKETING_OPT_OUT
+}
+
+enum CalendarSubscriptionScope {
+  BRANCH
+  PROFESSIONAL
+}
+
+model Branch {
+  id                      String   @id @default(uuid())
+  slug                    String   @unique
+  name                    String
+  city                    String
+  district                String?
+  address                 String?
+  timezone                String   @default("Europe/Istanbul")
+  openingMinute           Int      @default(600) @map("opening_minute")
+  closingMinute           Int      @default(1260) @map("closing_minute")
+  arrivalLeadMinutes      Int      @default(15) @map("arrival_lead_minutes")
+  reminderLeadMinutes     Int      @default(120) @map("reminder_lead_minutes")
+  requiresBookingApproval Boolean  @default(true) @map("requires_booking_approval")
+  isActive                Boolean  @default(true) @map("is_active")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  professionals         Professional[]
+  services              Service[]
+  bookings              Booking[]
+  weeklyIntervals       BranchWeeklyInterval[]
+  dateOverrides         BranchDateOverride[]
+  scheduleBlocks        ScheduleBlock[]
+  auditEvents           OperationalAuditEvent[]
+  bookingPolicy         BranchBookingPolicy?
+  adminUsers            AdminUser[]
+  changeRequests        BookingChangeRequest[]
+  waitlistEntries       WaitlistEntry[]
+  waitlistOffers        WaitlistOffer[]
+  recoveryEvents        SlotRecoveryEvent[]
+  realtimeEvents        AdminRealtimeEvent[]
+  bookingSeries         BookingSeries[]
+  bookingReviews        BookingReview[]
+  customerTags          CustomerTag[]
+  careProfiles          CustomerCareProfile[]
+  serviceRecords        CustomerServiceRecord[]
+  formTemplates         FormTemplate[]
+  formSubmissions       BookingFormSubmission[]
+  notificationRules     NotificationRule[]
+  calendarSubscriptions CalendarSubscription[]
+  consentRecords        ConsentRecord[]
+  mergeRecords          CustomerMergeRecord[]
+
+  @@map("branches")
+}
+
+model Professional {
+  id               String   @id @default(uuid())
+  branchId         String   @map("branch_id")
+  branch           Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  slug             String
+  name             String
+  title            String   @default("Anatomik Saç Kesim Uzmanı")
+  bio              String?
+  photoUrl         String?  @map("photo_url")
+  isActive         Boolean  @default(true) @map("is_active")
+  isOnlineBookable Boolean  @default(true) @map("is_online_bookable")
+  sortOrder        Int      @default(0) @map("sort_order")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  services               ProfessionalService[]
+  bookings               Booking[]
+  scheduleBlocks         ScheduleBlock[]
+  requestedChanges       BookingChangeRequest[]
+  waitlistEntries        WaitlistEntry[]
+  waitlistOffers         WaitlistOffer[]
+  adminUsers             AdminUser[]
+  occupancySegments      BookingOccupancySegment[]
+  bookingSeries          BookingSeries[]
+  bookingReviews         BookingReview[]
+  preferredByCustomers   CustomerCareProfile[]
+  customerServiceRecords CustomerServiceRecord[]
+  calendarSubscriptions  CalendarSubscription[]
+
+  @@unique([branchId, slug])
+  @@index([branchId, isActive, isOnlineBookable])
+  @@map("professionals")
+}
+
+model Service {
+  id                    String   @id @default(uuid())
+  branchId              String   @map("branch_id")
+  branch                Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  slug                  String
+  category              String
+  name                  String
+  description           String
+  durationMinutes       Int      @map("duration_minutes")
+  priceKurus            Int      @map("price_kurus")
+  isActive              Boolean  @default(true) @map("is_active")
+  isOnlineBookable      Boolean  @default(true) @map("is_online_bookable")
+  sortOrder             Int      @default(0) @map("sort_order")
+  preVisitInstructions  String?  @map("pre_visit_instructions")
+  postVisitInstructions String?  @map("post_visit_instructions")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  professionals        ProfessionalService[]
+  bookingItems         BookingItem[]
+  waitlistEntries      WaitlistEntryService[]
+  preferredByCustomers CustomerCareProfile[]
+  serviceRecords       CustomerServiceRecord[]
+  formRequirements     ServiceFormRequirement[]
+
+  @@unique([branchId, slug])
+  @@index([branchId, category, isActive])
+  @@map("services")
+}
+
+model ProfessionalService {
+  professionalId               String       @map("professional_id")
+  professional                 Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  serviceId                    String       @map("service_id")
+  service                      Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  durationMinutesOverride      Int?         @map("duration_minutes_override")
+  priceKurusOverride           Int?         @map("price_kurus_override")
+  isOnlineBookableOverride     Boolean?     @map("is_online_bookable_override")
+  bufferBeforeMinutes          Int          @default(0) @map("buffer_before_minutes")
+  bufferAfterMinutes           Int          @default(0) @map("buffer_after_minutes")
+  processingStartOffsetMinutes Int?         @map("processing_start_offset_minutes")
+  processingDurationMinutes    Int          @default(0) @map("processing_duration_minutes")
+  updatedAt                    DateTime     @updatedAt @map("updated_at")
+
+  @@id([professionalId, serviceId])
+  @@map("professional_services")
+}
+
+model Customer {
+  id                                String     @id @default(uuid())
+  fullName                          String     @map("full_name")
+  phone                             String     @unique
+  email                             String?
+  internalNote                      String?    @map("internal_note")
+  smsNotificationsEnabled           Boolean    @default(true) @map("sms_notifications_enabled")
+  lastLoginAt                       DateTime?  @map("last_login_at")
+  onlineBookingBlockedAt            DateTime?  @map("online_booking_blocked_at")
+  onlineBookingBlockReason          String?    @map("online_booking_block_reason")
+  onlineBookingBlockedByAdminUserId String?    @map("online_booking_blocked_by_admin_user_id")
+  onlineBookingBlockedByAdminUser   AdminUser? @relation("CustomerBookingBlockAdmin", fields: [onlineBookingBlockedByAdminUserId], references: [id], onDelete: SetNull)
+  createdAt                         DateTime   @default(now()) @map("created_at")
+  updatedAt                         DateTime   @updatedAt @map("updated_at")
+
+  bookings        Booking[]
+  waitlistEntries WaitlistEntry[]
+  authChallenges  CustomerAuthChallenge[]
+  sessions        CustomerSession[]
+  bookingSeries   BookingSeries[]
+  bookingReviews  BookingReview[]
+  careProfile     CustomerCareProfile?
+  tagAssignments  CustomerTagAssignment[]
+  serviceRecords  CustomerServiceRecord[]
+  formSubmissions BookingFormSubmission[]
+  consentRecords  ConsentRecord[]
+  mergeSources    CustomerMergeRecord[]   @relation("MergeSourceCustomer")
+  mergeTargets    CustomerMergeRecord[]   @relation("MergeTargetCustomer")
+  mergedIntoId    String?                 @map("merged_into_id")
+  mergedInto      Customer?               @relation("MergedCustomers", fields: [mergedIntoId], references: [id], onDelete: SetNull)
+  mergedCustomers Customer[]              @relation("MergedCustomers")
+  mergedAt        DateTime?               @map("merged_at")
+
+  @@index([mergedIntoId])
+  @@map("customers")
+}
+
+model CustomerAuthChallenge {
+  id            String              @id @default(uuid())
+  customerId    String?             @map("customer_id")
+  customer      Customer?           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  phoneHash     String              @map("phone_hash")
+  requestIpHash String              @map("request_ip_hash")
+  codeHash      String              @map("code_hash")
+  purpose       CustomerAuthPurpose
+  subjectId     String?             @map("subject_id")
+  expiresAt     DateTime            @map("expires_at")
+  consumedAt    DateTime?           @map("consumed_at")
+  attemptCount  Int                 @default(0) @map("attempt_count")
+  createdAt     DateTime            @default(now()) @map("created_at")
+
+  @@index([phoneHash, createdAt])
+  @@index([requestIpHash, createdAt])
+  @@index([purpose, subjectId, createdAt])
+  @@map("customer_auth_challenges")
+}
+
+model CustomerSession {
+  id            String    @id @default(uuid())
+  customerId    String    @map("customer_id")
+  customer      Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tokenHash     String    @unique @map("token_hash")
+  ipHash        String?   @map("ip_hash")
+  userAgentHash String?   @map("user_agent_hash")
+  expiresAt     DateTime  @map("expires_at")
+  lastSeenAt    DateTime  @default(now()) @map("last_seen_at")
+  revokedAt     DateTime? @map("revoked_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([customerId, revokedAt, expiresAt])
+  @@map("customer_sessions")
+}
+
+model Booking {
+  id                       String                    @id @default(uuid())
+  publicCode               String                    @unique @map("public_code")
+  branchId                 String                    @map("branch_id")
+  branch                   Branch                    @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  professionalId           String                    @map("professional_id")
+  professional             Professional              @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+  customerId               String?                   @map("customer_id")
+  customer                 Customer?                 @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  status                   BookingStatus             @default(HOLD)
+  source                   BookingSource             @default(ONLINE)
+  startAt                  DateTime                  @map("start_at")
+  endAt                    DateTime                  @map("end_at")
+  totalDurationMinutes     Int                       @map("total_duration_minutes")
+  totalPriceKurus          Int                       @map("total_price_kurus")
+  holdExpiresAt            DateTime?                 @map("hold_expires_at")
+  holdTokenHash            String?                   @map("hold_token_hash")
+  customerNote             String?                   @map("customer_note")
+  rejectionReason          String?                   @map("rejection_reason")
+  approvedAt               DateTime?                 @map("approved_at")
+  rejectedAt               DateTime?                 @map("rejected_at")
+  cancelledAt              DateTime?                 @map("cancelled_at")
+  cancellationReason       String?                   @map("cancellation_reason")
+  customerNameSnapshot     String?                   @map("customer_name_snapshot")
+  customerPhoneSnapshot    String?                   @map("customer_phone_snapshot")
+  adminNote                String?                   @map("admin_note")
+  notificationsEnabled     Boolean                   @default(true) @map("notifications_enabled")
+  revision                 Int                       @default(1)
+  visitStatus              VisitStatus?              @map("visit_status")
+  visitStatusUpdatedAt     DateTime?                 @map("visit_status_updated_at")
+  seriesId                 String?                   @map("series_id")
+  series                   BookingSeries?            @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  occurrenceIndex          Int?                      @map("occurrence_index")
+  isSeriesException        Boolean                   @default(false) @map("is_series_exception")
+  overrideReason           String?                   @map("override_reason")
+  overrideByAdminUserId    String?                   @map("override_by_admin_user_id")
+  overrideByAdminUser      AdminUser?                @relation("BookingOverrideAdmin", fields: [overrideByAdminUserId], references: [id], onDelete: SetNull)
+  scheduleOverride         Boolean                   @default(false) @map("schedule_override")
+  createdAt                DateTime                  @default(now()) @map("created_at")
+  updatedAt                DateTime                  @updatedAt @map("updated_at")
+
+  items                  BookingItem[]
+  accessChallenges       BookingAccessChallenge[]
+  notifications          BookingNotification[]
+  auditEvents            OperationalAuditEvent[]
+  changeRequests         BookingChangeRequest[]
+  acceptedWaitlistOffers WaitlistOffer[]           @relation("AcceptedWaitlistBooking")
+  occupancySegments      BookingOccupancySegment[]
+  review                 BookingReview?
+  formSubmissions        BookingFormSubmission[]
+  serviceRecords         CustomerServiceRecord[]
+
+  @@index([branchId, startAt, status])
+  @@index([branchId, status, startAt, id])
+  @@index([branchId, source, startAt, id])
+  @@index([professionalId, startAt, endAt])
+  @@index([customerId, createdAt])
+  @@index([seriesId, occurrenceIndex])
+  @@map("bookings")
+}
+
+model BookingAccessChallenge {
+  id            String    @id @default(uuid())
+  bookingId     String?   @map("booking_id")
+  booking       Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  referenceHash String    @map("reference_hash")
+  phoneHash     String    @map("phone_hash")
+  requestIpHash String    @map("request_ip_hash")
+  codeHash      String    @map("code_hash")
+  expiresAt     DateTime  @map("expires_at")
+  consumedAt    DateTime? @map("consumed_at")
+  attemptCount  Int       @default(0) @map("attempt_count")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([bookingId, createdAt])
+  @@index([phoneHash, createdAt])
+  @@index([requestIpHash, createdAt])
+  @@map("booking_access_challenges")
+}
+
+model BookingNotification {
+  id                   String                @id @default(uuid())
+  bookingId            String?               @map("booking_id")
+  booking              Booking?              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  waitlistEntryId      String?               @map("waitlist_entry_id")
+  waitlistEntry        WaitlistEntry?        @relation(fields: [waitlistEntryId], references: [id], onDelete: Cascade)
+  waitlistOfferId      String?               @map("waitlist_offer_id")
+  waitlistOffer        WaitlistOffer?        @relation(fields: [waitlistOfferId], references: [id], onDelete: Cascade)
+  recipientPhone       String?               @map("recipient_phone")
+  channel              NotificationChannel   @default(SMS)
+  eventType            NotificationEventType @map("event_type")
+  status               NotificationStatus    @default(PENDING)
+  scheduledFor         DateTime              @map("scheduled_for")
+  availableAt          DateTime              @map("available_at")
+  attemptCount         Int                   @default(0) @map("attempt_count")
+  maxAttempts          Int                   @default(4) @map("max_attempts")
+  lastAttemptAt        DateTime?             @map("last_attempt_at")
+  processingStartedAt  DateTime?             @map("processing_started_at")
+  sentAt               DateTime?             @map("sent_at")
+  deliveredAt          DateTime?             @map("delivered_at")
+  failedAt             DateTime?             @map("failed_at")
+  provider             String?
+  providerMessageId    String?               @map("provider_message_id")
+  providerResponseCode String?               @map("provider_response_code")
+  providerStatus       String?               @map("provider_status")
+  lastErrorCode        String?               @map("last_error_code")
+  lastErrorMessage     String?               @map("last_error_message")
+  idempotencyKey       String                @unique @map("idempotency_key")
+  payloadVersion       Int                   @default(1) @map("payload_version")
+  bookingRevision      Int?                  @map("booking_revision")
+  appointmentStartAt   DateTime?             @map("appointment_start_at")
+  payload              Json?
+  notificationRuleId   String?               @map("notification_rule_id")
+  notificationRule     NotificationRule?     @relation(fields: [notificationRuleId], references: [id], onDelete: SetNull)
+  createdAt            DateTime              @default(now()) @map("created_at")
+  updatedAt            DateTime              @updatedAt @map("updated_at")
+
+  @@index([status, availableAt])
+  @@index([bookingId, createdAt])
+  @@index([waitlistEntryId, createdAt])
+  @@index([waitlistOfferId, createdAt])
+  @@map("booking_notifications")
+}
+
+model BookingItem {
+  id                            String  @id @default(uuid())
+  bookingId                     String  @map("booking_id")
+  booking                       Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  serviceId                     String  @map("service_id")
+  service                       Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  serviceName                   String  @map("service_name")
+  durationMinutes               Int     @map("duration_minutes")
+  priceKurus                    Int     @map("price_kurus")
+  sortOrder                     Int     @default(0) @map("sort_order")
+  preVisitInstructionsSnapshot  String? @map("pre_visit_instructions_snapshot")
+  postVisitInstructionsSnapshot String? @map("post_visit_instructions_snapshot")
+  bufferBeforeMinutes           Int     @default(0) @map("buffer_before_minutes")
+  bufferAfterMinutes            Int     @default(0) @map("buffer_after_minutes")
+  processingStartOffsetMinutes  Int?    @map("processing_start_offset_minutes")
+  processingDurationMinutes     Int     @default(0) @map("processing_duration_minutes")
+
+  @@index([bookingId, sortOrder])
+  @@map("booking_items")
+}
+
+model BookingOccupancySegment {
+  id             String               @id @default(uuid())
+  bookingId      String               @map("booking_id")
+  booking        Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  professionalId String               @map("professional_id")
+  professional   Professional         @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+  startAt        DateTime             @map("start_at")
+  endAt          DateTime             @map("end_at")
+  kind           BookingOccupancyKind
+  createdAt      DateTime             @default(now()) @map("created_at")
+
+  @@index([professionalId, startAt, endAt])
+  @@index([bookingId, startAt])
+  @@map("booking_occupancy_segments")
+}
+
+model BookingSeries {
+  id                   String                 @id @default(uuid())
+  branchId             String                 @map("branch_id")
+  branch               Branch                 @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  customerId           String?                @map("customer_id")
+  customer             Customer?              @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  professionalId       String                 @map("professional_id")
+  professional         Professional           @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+  frequency            BookingSeriesFrequency
+  startsOn             DateTime               @map("starts_on") @db.Date
+  endsOn               DateTime?              @map("ends_on") @db.Date
+  occurrenceCount      Int                    @map("occurrence_count")
+  status               BookingSeriesStatus    @default(ACTIVE)
+  createdByActorType   AuditActorType         @map("created_by_actor_type")
+  createdByAdminUserId String?                @map("created_by_admin_user_id")
+  idempotencyKey       String                 @unique @map("idempotency_key")
+  createdAt            DateTime               @default(now()) @map("created_at")
+  updatedAt            DateTime               @updatedAt @map("updated_at")
+
+  bookings Booking[]
+
+  @@index([branchId, status, startsOn])
+  @@index([customerId, status])
+  @@map("booking_series")
+}
+
+model BookingReview {
+  id               String        @id @default(uuid())
+  bookingId        String        @unique @map("booking_id")
+  booking          Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  customerId       String?       @map("customer_id")
+  customer         Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  branchId         String        @map("branch_id")
+  branch           Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  professionalId   String        @map("professional_id")
+  professional     Professional  @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+  rating           Int?
+  comment          String?
+  source           ReviewSource?
+  submittedAt      DateTime?     @map("submitted_at")
+  requestSentAt    DateTime?     @map("request_sent_at")
+  requestTokenHash String        @unique @map("request_token_hash")
+  requestExpiresAt DateTime      @map("request_expires_at")
+  adminReadAt      DateTime?     @map("admin_read_at")
+  adminNote        String?       @map("admin_note")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  @@index([branchId, submittedAt])
+  @@index([professionalId, submittedAt])
+  @@index([customerId, submittedAt])
+  @@map("booking_reviews")
+}
+
+model BranchWeeklyInterval {
+  id          String   @id @default(uuid())
+  branchId    String   @map("branch_id")
+  branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  weekday     Int
+  startMinute Int      @map("start_minute")
+  endMinute   Int      @map("end_minute")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([branchId, weekday, startMinute, endMinute])
+  @@index([branchId, weekday])
+  @@map("branch_weekly_intervals")
+}
+
+model BranchDateOverride {
+  id        String   @id @default(uuid())
+  branchId  String   @map("branch_id")
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  isClosed  Boolean  @default(false) @map("is_closed")
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  intervals BranchDateInterval[]
+
+  @@unique([branchId, date])
+  @@index([branchId, date])
+  @@map("branch_date_overrides")
+}
+
+model BranchDateInterval {
+  id          String             @id @default(uuid())
+  overrideId  String             @map("override_id")
+  override    BranchDateOverride @relation(fields: [overrideId], references: [id], onDelete: Cascade)
+  startMinute Int                @map("start_minute")
+  endMinute   Int                @map("end_minute")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  @@unique([overrideId, startMinute, endMinute])
+  @@index([overrideId])
+  @@map("branch_date_intervals")
+}
+
+model ScheduleBlock {
+  id                 String            @id @default(uuid())
+  branchId           String            @map("branch_id")
+  branch             Branch            @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  professionalId     String?           @map("professional_id")
+  professional       Professional?     @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  kind               ScheduleBlockKind
+  title              String
+  internalNote       String?           @map("internal_note")
+  startAt            DateTime          @map("start_at")
+  endAt              DateTime          @map("end_at")
+  cancelledAt        DateTime?         @map("cancelled_at")
+  cancellationReason String?           @map("cancellation_reason")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+
+  @@index([branchId, startAt, endAt])
+  @@index([professionalId, startAt, endAt])
+  @@map("schedule_blocks")
+}
+
+model OperationalAuditEvent {
+  id            String         @id @default(uuid())
+  branchId      String         @map("branch_id")
+  branch        Branch         @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  bookingId     String?        @map("booking_id")
+  booking       Booking?       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  entityType    String         @map("entity_type")
+  entityId      String         @map("entity_id")
+  action        String
+  actorType     AuditActorType @map("actor_type")
+  adminUserId   String?        @map("admin_user_id")
+  adminUser     AdminUser?     @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+  actorLabel    String?        @map("actor_label")
+  requestIpHash String?        @map("request_ip_hash")
+  beforeData    Json?          @map("before_data")
+  afterData     Json?          @map("after_data")
+  reason        String?
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  @@index([branchId, createdAt])
+  @@index([bookingId, createdAt])
+  @@index([entityType, entityId, createdAt])
+  @@index([adminUserId, createdAt])
+  @@map("operational_audit_events")
+}
+
+model BranchBookingPolicy {
+  id                                         String   @id @default(uuid())
+  branchId                                   String   @unique @map("branch_id")
+  branch                                     Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  cancellationLeadMinutes                    Int      @default(120) @map("cancellation_lead_minutes")
+  rescheduleLeadMinutes                      Int      @default(180) @map("reschedule_lead_minutes")
+  changeRequestTtlMinutes                    Int      @default(120) @map("change_request_ttl_minutes")
+  waitlistOfferTtlMinutes                    Int      @default(15) @map("waitlist_offer_ttl_minutes")
+  maxActiveChangeRequests                    Int      @default(1) @map("max_active_change_requests")
+  otpResendSeconds                           Int      @default(60) @map("otp_resend_seconds")
+  otpMaxAttempts                             Int      @default(5) @map("otp_max_attempts")
+  earlyArrivalMinutes                        Int      @default(15) @map("early_arrival_minutes")
+  reminderLeadMinutes                        Int      @default(120) @map("reminder_lead_minutes")
+  pendingWarningMinutes                      Int      @default(30) @map("pending_warning_minutes")
+  bookingWindowDays                          Int      @default(30) @map("booking_window_days")
+  // Public müsaitlik ızgarasının adım aralığı. 0 = hizmet süresini kullan
+  // (hizmet 30 dk ise slotlar 30 dk aralıkla üretilir). Yönetici görünümü bundan
+  // bağımsız olarak her zaman 15 dakikalık ızgara kullanır.
+  publicSlotGranularityMinutes               Int      @default(0) @map("public_slot_granularity_minutes")
+  minimumBookingNoticeMinutes                Int      @default(0) @map("minimum_booking_notice_minutes")
+  sameDayBookingCutoffMinute                 Int?     @map("same_day_booking_cutoff_minute")
+  allowLateCancellation                      Boolean  @default(true) @map("allow_late_cancellation")
+  waitlistEnabled                            Boolean  @default(true) @map("waitlist_enabled")
+  automaticWaitlistOffers                    Boolean  @default(true) @map("automatic_waitlist_offers")
+  salonPhone                                 String?  @map("salon_phone")
+  whatsappPhone                              String?  @map("whatsapp_phone")
+  mapsUrl                                    String?  @map("maps_url")
+  customerPolicyText                         String?  @map("customer_policy_text")
+  reviewRequestEnabled                       Boolean  @default(true) @map("review_request_enabled")
+  reviewRequestDelayMinutes                  Int      @default(30) @map("review_request_delay_minutes")
+  reviewRequestExpiryDays                    Int      @default(30) @map("review_request_expiry_days")
+  googleReviewUrl                            String?  @map("google_review_url")
+  createdAt                                  DateTime @default(now()) @map("created_at")
+  updatedAt                                  DateTime @updatedAt @map("updated_at")
+
+  @@map("branch_booking_policies")
+}
+
+model AdminUser {
+  id                String        @id @default(uuid())
+  branchId          String        @map("branch_id")
+  branch            Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  username          String
+  displayName       String        @map("display_name")
+  passwordHash      String        @map("password_hash")
+  role              AdminRole     @default(OWNER)
+  professionalId    String?       @map("professional_id")
+  professional      Professional? @relation(fields: [professionalId], references: [id], onDelete: SetNull)
+  isActive          Boolean       @default(true) @map("is_active")
+  failedLoginCount  Int           @default(0) @map("failed_login_count")
+  lockedUntil       DateTime?     @map("locked_until")
+  lastLoginAt       DateTime?     @map("last_login_at")
+  passwordChangedAt DateTime      @default(now()) @map("password_changed_at")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  sessions                     AdminSession[]
+  blockedCustomers             Customer[]                      @relation("CustomerBookingBlockAdmin")
+  overriddenBookings           Booking[]                       @relation("BookingOverrideAdmin")
+  auditEvents                  OperationalAuditEvent[]
+  serviceRecords               CustomerServiceRecord[]
+  serviceRecordRevisions       CustomerServiceRecordRevision[]
+  reviewedFormSubmissions      BookingFormSubmission[]
+  createdCalendarSubscriptions CalendarSubscription[]
+
+  @@unique([branchId, username])
+  @@index([username, isActive])
+  @@index([professionalId, isActive])
+  @@map("admin_users")
+}
+
+model AdminSession {
+  id            String    @id @default(uuid())
+  adminUserId   String    @map("admin_user_id")
+  adminUser     AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  tokenHash     String    @unique @map("token_hash")
+  ipHash        String?   @map("ip_hash")
+  userAgentHash String?   @map("user_agent_hash")
+  expiresAt     DateTime  @map("expires_at")
+  lastSeenAt    DateTime  @default(now()) @map("last_seen_at")
+  revokedAt     DateTime? @map("revoked_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([adminUserId, revokedAt, expiresAt])
+  @@map("admin_sessions")
+}
+
+model BookingChangeRequest {
+  id                            String                     @id @default(uuid())
+  branchId                      String                     @map("branch_id")
+  branch                        Branch                     @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  bookingId                     String                     @map("booking_id")
+  booking                       Booking                    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  requestedProfessionalId       String                     @map("requested_professional_id")
+  requestedProfessional         Professional               @relation(fields: [requestedProfessionalId], references: [id], onDelete: Restrict)
+  status                        BookingChangeRequestStatus @default(PENDING)
+  requestedStartAt              DateTime                   @map("requested_start_at")
+  requestedEndAt                DateTime                   @map("requested_end_at")
+  requestedTotalDurationMinutes Int?                       @map("requested_total_duration_minutes")
+  requestedTotalPriceKurus      Int?                       @map("requested_total_price_kurus")
+  serviceSnapshot               Json?                      @map("service_snapshot")
+  bookingRevision               Int                        @map("booking_revision")
+  reason                        String?
+  decisionReason                String?                    @map("decision_reason")
+  expiresAt                     DateTime                   @map("expires_at")
+  decidedAt                     DateTime?                  @map("decided_at")
+  createdAt                     DateTime                   @default(now()) @map("created_at")
+  updatedAt                     DateTime                   @updatedAt @map("updated_at")
+
+  occupancySegments BookingChangeOccupancySegment[]
+
+  @@index([branchId, status, createdAt])
+  @@index([bookingId, status])
+  @@index([requestedProfessionalId, requestedStartAt, requestedEndAt])
+  @@map("booking_change_requests")
+}
+
+model BookingChangeOccupancySegment {
+  id              String               @id @default(uuid())
+  changeRequestId String               @map("change_request_id")
+  changeRequest   BookingChangeRequest @relation(fields: [changeRequestId], references: [id], onDelete: Cascade)
+  professionalId  String               @map("professional_id")
+  startAt         DateTime             @map("start_at")
+  endAt           DateTime             @map("end_at")
+  kind            BookingOccupancyKind
+
+  @@index([professionalId, startAt, endAt])
+  @@index([changeRequestId])
+  @@map("booking_change_occupancy_segments")
+}
+
+model WaitlistEntry {
+  id               String              @id @default(uuid())
+  branchId         String              @map("branch_id")
+  branch           Branch              @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  customerId       String?             @map("customer_id")
+  customer         Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  professionalId   String?             @map("professional_id")
+  professional     Professional?       @relation(fields: [professionalId], references: [id], onDelete: SetNull)
+  fullName         String              @map("full_name")
+  phone            String
+  note             String?
+  dateFrom         DateTime            @map("date_from") @db.Date
+  dateTo           DateTime            @map("date_to") @db.Date
+  startMinute      Int                 @map("start_minute")
+  endMinute        Int                 @map("end_minute")
+  status           WaitlistEntryStatus @default(ACTIVE)
+  failedOfferCount Int                 @default(0) @map("failed_offer_count")
+  accessTokenHash  String              @unique @map("access_token_hash")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+
+  services      WaitlistEntryService[]
+  offers        WaitlistOffer[]
+  notifications BookingNotification[]
+
+  @@index([branchId, status, dateFrom, dateTo])
+  @@index([phone, status])
+  @@map("waitlist_entries")
+}
+
+model WaitlistEntryService {
+  waitlistEntryId String        @map("waitlist_entry_id")
+  waitlistEntry   WaitlistEntry @relation(fields: [waitlistEntryId], references: [id], onDelete: Cascade)
+  serviceId       String        @map("service_id")
+  service         Service       @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  sortOrder       Int           @default(0) @map("sort_order")
+
+  @@id([waitlistEntryId, serviceId])
+  @@index([serviceId])
+  @@map("waitlist_entry_services")
+}
+
+model WaitlistOffer {
+  id                   String              @id @default(uuid())
+  branchId             String              @map("branch_id")
+  branch               Branch              @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  waitlistEntryId      String              @map("waitlist_entry_id")
+  waitlistEntry        WaitlistEntry       @relation(fields: [waitlistEntryId], references: [id], onDelete: Cascade)
+  professionalId       String              @map("professional_id")
+  professional         Professional        @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+  acceptedBookingId    String?             @map("accepted_booking_id")
+  acceptedBooking      Booking?            @relation("AcceptedWaitlistBooking", fields: [acceptedBookingId], references: [id], onDelete: SetNull)
+  status               WaitlistOfferStatus @default(PENDING)
+  startAt              DateTime            @map("start_at")
+  endAt                DateTime            @map("end_at")
+  totalDurationMinutes Int                 @default(0) @map("total_duration_minutes")
+  totalPriceKurus      Int                 @default(0) @map("total_price_kurus")
+  serviceSnapshot      Json?               @map("service_snapshot")
+  expiresAt            DateTime            @map("expires_at")
+  tokenHash            String              @unique @map("token_hash")
+  acceptedAt           DateTime?           @map("accepted_at")
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
+
+  notifications     BookingNotification[]
+  occupancySegments WaitlistOfferOccupancySegment[]
+
+  @@index([branchId, status, startAt])
+  @@index([professionalId, startAt, endAt])
+  @@index([waitlistEntryId, status])
+  @@map("waitlist_offers")
+}
+
+model WaitlistOfferOccupancySegment {
+  id              String               @id @default(uuid())
+  waitlistOfferId String               @map("waitlist_offer_id")
+  waitlistOffer   WaitlistOffer        @relation(fields: [waitlistOfferId], references: [id], onDelete: Cascade)
+  professionalId  String               @map("professional_id")
+  startAt         DateTime             @map("start_at")
+  endAt           DateTime             @map("end_at")
+  kind            BookingOccupancyKind
+
+  @@index([professionalId, startAt, endAt])
+  @@index([waitlistOfferId])
+  @@map("waitlist_offer_occupancy_segments")
+}
+
+model WaitlistAccessChallenge {
+  id            String    @id @default(uuid())
+  branchId      String    @map("branch_id")
+  phoneHash     String    @map("phone_hash")
+  requestIpHash String    @map("request_ip_hash")
+  codeHash      String    @map("code_hash")
+  payload       Json
+  expiresAt     DateTime  @map("expires_at")
+  consumedAt    DateTime? @map("consumed_at")
+  attemptCount  Int       @default(0) @map("attempt_count")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([phoneHash, createdAt])
+  @@index([requestIpHash, createdAt])
+  @@map("waitlist_access_challenges")
+}
+
+model SlotRecoveryEvent {
+  id             String             @id @default(uuid())
+  branchId       String             @map("branch_id")
+  branch         Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  startAt        DateTime           @map("start_at")
+  endAt          DateTime           @map("end_at")
+  professionalId String?            @map("professional_id")
+  sourceType     String             @map("source_type")
+  sourceId       String             @map("source_id")
+  status         SlotRecoveryStatus @default(PENDING)
+  attemptCount   Int                @default(0) @map("attempt_count")
+  availableAt    DateTime           @default(now()) @map("available_at")
+  lastError      String?            @map("last_error")
+  processedAt    DateTime?          @map("processed_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  @@unique([sourceType, sourceId, startAt])
+  @@index([status, availableAt])
+  @@map("slot_recovery_events")
+}
+
+model AdminRealtimeEvent {
+  id           String   @id @default(uuid())
+  branchId     String   @map("branch_id")
+  branch       Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  resourceType String   @map("resource_type")
+  resourceId   String?  @map("resource_id")
+  action       String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([branchId, createdAt])
+  @@map("admin_realtime_events")
+}
+
+model CustomerCareProfile {
+  id                            String        @id @default(uuid())
+  branchId                      String        @map("branch_id")
+  branch                        Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  customerId                    String        @unique @map("customer_id")
+  customer                      Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  preferredProfessionalId       String?       @map("preferred_professional_id")
+  preferredProfessional         Professional? @relation(fields: [preferredProfessionalId], references: [id], onDelete: SetNull)
+  preferredServiceId            String?       @map("preferred_service_id")
+  preferredService              Service?      @relation(fields: [preferredServiceId], references: [id], onDelete: SetNull)
+  stylePreferences              String?       @map("style_preferences")
+  avoidProducts                 String?       @map("avoid_products")
+  customerReportedSensitivities String?       @map("customer_reported_sensitivities")
+  communicationNote             String?       @map("communication_note")
+  createdAt                     DateTime      @default(now()) @map("created_at")
+  updatedAt                     DateTime      @updatedAt @map("updated_at")
+
+  @@index([branchId, updatedAt])
+  @@map("customer_care_profiles")
+}
+
+model CustomerTag {
+  id        String   @id @default(uuid())
+  branchId  String   @map("branch_id")
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  name      String
+  color     String   @default("neutral")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  assignments CustomerTagAssignment[]
+
+  @@unique([branchId, name])
+  @@index([branchId, isActive, name])
+  @@map("customer_tags")
+}
+
+model CustomerTagAssignment {
+  customerId String      @map("customer_id")
+  customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tagId      String      @map("tag_id")
+  tag        CustomerTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  @@id([customerId, tagId])
+  @@index([tagId, createdAt])
+  @@map("customer_tag_assignments")
+}
+
+model CustomerServiceRecord {
+  id                   String        @id @default(uuid())
+  branchId             String        @map("branch_id")
+  branch               Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  customerId           String        @map("customer_id")
+  customer             Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  bookingId            String?       @map("booking_id")
+  booking              Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  serviceId            String?       @map("service_id")
+  service              Service?      @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  professionalId       String?       @map("professional_id")
+  professional         Professional? @relation(fields: [professionalId], references: [id], onDelete: SetNull)
+  createdByAdminUserId String        @map("created_by_admin_user_id")
+  createdByAdminUser   AdminUser     @relation(fields: [createdByAdminUserId], references: [id], onDelete: Restrict)
+  currentRevision      Int           @default(1) @map("current_revision")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+
+  revisions CustomerServiceRecordRevision[]
+
+  @@index([branchId, customerId, createdAt])
+  @@index([bookingId])
+  @@index([professionalId, createdAt])
+  @@map("customer_service_records")
+}
+
+model CustomerServiceRecordRevision {
+  id                      String                @id @default(uuid())
+  serviceRecordId         String                @map("service_record_id")
+  serviceRecord           CustomerServiceRecord @relation(fields: [serviceRecordId], references: [id], onDelete: Cascade)
+  revision                Int
+  technique               String?
+  formulaNote             String?               @map("formula_note")
+  productNote             String?               @map("product_note")
+  resultNote              String?               @map("result_note")
+  nextVisitRecommendation String?               @map("next_visit_recommendation")
+  createdByAdminUserId    String                @map("created_by_admin_user_id")
+  createdByAdminUser      AdminUser             @relation(fields: [createdByAdminUserId], references: [id], onDelete: Restrict)
+  createdAt               DateTime              @default(now()) @map("created_at")
+
+  @@unique([serviceRecordId, revision])
+  @@index([createdByAdminUserId, createdAt])
+  @@map("customer_service_record_revisions")
+}
+
+model FormTemplate {
+  id          String             @id @default(uuid())
+  branchId    String             @map("branch_id")
+  branch      Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  status      FormTemplateStatus @default(DRAFT)
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  versions     FormTemplateVersion[]
+  requirements ServiceFormRequirement[]
+
+  @@index([branchId, status, updatedAt])
+  @@map("form_templates")
+}
+
+model FormTemplateVersion {
+  id             String       @id @default(uuid())
+  formTemplateId String       @map("form_template_id")
+  formTemplate   FormTemplate @relation(fields: [formTemplateId], references: [id], onDelete: Cascade)
+  version        Int
+  title          String
+  description    String?
+  definition     Json
+  publishedAt    DateTime?    @map("published_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  submissions BookingFormSubmission[]
+
+  @@unique([formTemplateId, version])
+  @@index([formTemplateId, publishedAt])
+  @@map("form_template_versions")
+}
+
+model ServiceFormRequirement {
+  serviceId      String       @map("service_id")
+  service        Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  formTemplateId String       @map("form_template_id")
+  formTemplate   FormTemplate @relation(fields: [formTemplateId], references: [id], onDelete: Cascade)
+  isRequired     Boolean      @default(true) @map("is_required")
+  sortOrder      Int          @default(0) @map("sort_order")
+
+  @@id([serviceId, formTemplateId])
+  @@index([formTemplateId])
+  @@map("service_form_requirements")
+}
+
+model BookingFormSubmission {
+  id                    String               @id @default(uuid())
+  branchId              String               @map("branch_id")
+  branch                Branch               @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  bookingId             String               @map("booking_id")
+  booking               Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  customerId            String?              @map("customer_id")
+  customer              Customer?            @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  formTemplateVersionId String               @map("form_template_version_id")
+  formTemplateVersion   FormTemplateVersion  @relation(fields: [formTemplateVersionId], references: [id], onDelete: Restrict)
+  status                FormSubmissionStatus @default(PENDING)
+  isRequired            Boolean              @default(true) @map("is_required")
+  answers               Json?
+  submittedAt           DateTime?            @map("submitted_at")
+  reviewedAt            DateTime?            @map("reviewed_at")
+  reviewedByAdminUserId String?              @map("reviewed_by_admin_user_id")
+  reviewedByAdminUser   AdminUser?           @relation(fields: [reviewedByAdminUserId], references: [id], onDelete: SetNull)
+  createdAt             DateTime             @default(now()) @map("created_at")
+  updatedAt             DateTime             @updatedAt @map("updated_at")
+
+  @@unique([bookingId, formTemplateVersionId])
+  @@index([branchId, status, createdAt])
+  @@index([customerId, createdAt])
+  @@map("booking_form_submissions")
+}
+
+model ConsentRecord {
+  id              String            @id @default(uuid())
+  branchId        String            @map("branch_id")
+  branch          Branch            @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  customerId      String            @map("customer_id")
+  customer        Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type            ConsentRecordType
+  documentKey     String            @map("document_key")
+  documentVersion String            @map("document_version")
+  granted         Boolean
+  source          String
+  requestIpHash   String?           @map("request_ip_hash")
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  @@index([branchId, customerId, type, createdAt])
+  @@map("consent_records")
+}
+
+model NotificationRule {
+  id              String                @id @default(uuid())
+  branchId        String                @map("branch_id")
+  branch          Branch                @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  eventType       NotificationEventType @map("event_type")
+  channel         NotificationChannel   @default(SMS)
+  leadMinutes     Int?                  @map("lead_minutes")
+  messageTemplate String?               @map("message_template")
+  bookingStatuses Json?                 @map("booking_statuses")
+  isActive        Boolean               @default(true) @map("is_active")
+  sortOrder       Int                   @default(0) @map("sort_order")
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+
+  notifications BookingNotification[]
+
+  @@index([branchId, eventType, isActive])
+  @@map("notification_rules")
+}
+
+model CalendarSubscription {
+  id                   String                    @id @default(uuid())
+  branchId             String                    @map("branch_id")
+  branch               Branch                    @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  professionalId       String?                   @map("professional_id")
+  professional         Professional?             @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  scope                CalendarSubscriptionScope
+  label                String
+  tokenHash            String                    @unique @map("token_hash")
+  createdByAdminUserId String                    @map("created_by_admin_user_id")
+  createdByAdminUser   AdminUser                 @relation(fields: [createdByAdminUserId], references: [id], onDelete: Restrict)
+  lastUsedAt           DateTime?                 @map("last_used_at")
+  expiresAt            DateTime?                 @map("expires_at")
+  revokedAt            DateTime?                 @map("revoked_at")
+  createdAt            DateTime                  @default(now()) @map("created_at")
+  updatedAt            DateTime                  @updatedAt @map("updated_at")
+
+  @@index([branchId, revokedAt, createdAt])
+  @@index([professionalId, revokedAt])
+  @@map("calendar_subscriptions")
+}
+
+model CustomerMergeRecord {
+  id                   String   @id @default(uuid())
+  branchId             String   @map("branch_id")
+  branch               Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  sourceCustomerId     String   @map("source_customer_id")
+  sourceCustomer       Customer @relation("MergeSourceCustomer", fields: [sourceCustomerId], references: [id], onDelete: Restrict)
+  targetCustomerId     String   @map("target_customer_id")
+  targetCustomer       Customer @relation("MergeTargetCustomer", fields: [targetCustomerId], references: [id], onDelete: Restrict)
+  snapshot             Json
+  createdByAdminUserId String   @map("created_by_admin_user_id")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  @@index([branchId, createdAt])
+  @@index([sourceCustomerId])
+  @@index([targetCustomerId])
+  @@map("customer_merge_records")
+}

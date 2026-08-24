@@ -1,0 +1,26 @@
+Konu: 10. Gün Gün Sonu Raporu (30.07.2026)
+
+Merhaba Sayın Yetkili,
+
+Bugün Ramazan İnanç Hair Art Studio randevu ve salon operasyon sisteminin müşteri rezervasyonu, müşteri hesabı ve yönetici arayüzlerini ortak, markaya özgü ve sürdürülebilir bir tasarım sistemi altında birleştirmeye yönelik çalışmalar gerçekleştirdim. Mevcut ekranlardaki hazır şablon ve yapay zekâ ürünü görünümünü azaltarak sistemin daha profesyonel, okunabilir ve gerçek salon operasyonlarına uygun hâle getirilmesi sağlandı.
+
+İlk olarak renk, tipografi, boşluk, kenarlık, köşe yuvarlaklığı, gölge ve hareket değerleri merkezî tasarım değişkenleri altında toplandı. Güçlü başlıklar için Archivo, gövde ve arayüz metinleri için Source Sans 3 yazı ailesi kullanıldı. Bütün ekranlarda 8 piksel tabanlı boşluk sistemi benimsendi; kontrol, kart, panel ve büyük yüzeyler için 6, 8, 10 ve 12 piksellik sınırlı köşe yuvarlaklığı kademeleri oluşturuldu. Ana aksiyonlarda koyu Studio Ink tonu ve beyaz metin, güven ve başarı durumlarında ise kontrollü Salon Emerald vurgusu kullanıldı.
+
+Müşteri rezervasyon ekranında gerçek salon videosunu, resmî logoyu ve güçlü ana mesajı taşıyan sinematik üst alan korundu. Hizmet, uzman, tarih-saat ve onay adımları daha açık, işlev odaklı ve yüksek kontrastlı çalışma yüzeyleri üzerinde yeniden düzenlendi. Seçili durumların yalnızca renkle değil kenarlık, yüzey ve işaret değişimiyle anlaşılması sağlandı. Hizmet kartları, kategori kontrolleri, uzman seçimleri, saat alanları, canlı randevu özeti ve mobil sabit aksiyon alanları ortak görsel kurallara bağlandı.
+
+Müşteri hesabı; işlem bekleyen, yaklaşan ve geçmiş randevuların önem sırasına göre ayrıldığı kişisel bir randevu merkezine dönüştürüldü. Uzun ve tekdüze randevu listeleri sadeleştirildi; tarih, saat, uzman, hizmet, fiyat ve durum bilgilerinin tek bakışta okunabileceği bir bilgi sırası oluşturuldu. Randevu detayı, profil, iptal ve değişiklik alanları aynı tipografi, form, buton, kenarlık ve durum diliyle uyumlu hâle getirildi.
+
+Yönetici tarafında giriş ekranı, navigasyon, filtre alanları, özet göstergeleri, bekleyen talepler, günlük uzman takvimi ve yönetim formları ortak operasyon dili altında yeniden düzenlendi. Çalışma alanının masaüstünde daha verimli kullanılması, kritik bilgilerin daha hızlı taranabilmesi ve randevu kartlarının zaman çizelgesiyle doğru hizalanması sağlandı. Hizmet, uzman, müşteri, çalışma düzeni, rapor ve ayar ekranlarındaki kontrol geometrileri ile hata, boş, yükleniyor, seçili ve pasif durumlar standardize edildi.
+
+Tasarım borcunu azaltmak amacıyla birbiriyle çakışan buton ve ikon sistemleri sadeleştirildi. Arayüzde tek ikon ailesi kullanıldı; işlevsiz görsel efektler, gereksiz canvas ve 3D kart bileşenleri ile tekrarlanan stil tanımları temizlendi. Ana rezervasyon videosu korunurken dekoratif unsurların metin ve kontrollerin önüne geçmesi engellendi.
+
+Responsive ve erişilebilirlik kontrollerinde masaüstü, tablet ve mobil görünümler ayrı ayrı ele alındı. Dar ekranlarda içeriklerin yeniden sıralanması, yatay taşmaların önlenmesi, form ve butonların en az 44 piksel dokunma alanına sahip olması, klavye odak göstergelerinin görünür olması ve hareket azaltma tercihinin desteklenmesi sağlandı. Ana ve ikincil metinler ile seçili, güven, başarı ve hata durumları WCAG AA kontrast hedefi doğrultusunda kontrol edildi.
+
+Çalışmaların sonunda frontend lint kontrolü, 8 test dosyasındaki 12 frontend testi ve üretim derlemesi başarıyla tamamlandı. Backend tarafında 27 test paketi kapsamındaki 84 test ile üretim derlemesi başarıyla sonuçlandı. Public rezervasyon, müşteri hesabı ve yönetici giriş ekranları gerçek tarayıcıda görsel olarak incelendi; yapılan arayüz değişikliklerinin mevcut rezervasyon iş kurallarını ve API sözleşmelerini etkilemediği doğrulandı.
+
+Yapılan çalışmaların açıklamalı ekran görüntüleri, tasarım sistemi kararları, seçilmiş kaynak kod bölümleri ve kontrol sonuçları 10. Gün Gün Sonu Eki dosyasında sunulmuştur.
+
+Saygılarımla,
+
+Eray Ülgen
+Pamukkale Üniversitesi – Bilgisayar Mühendisliği Stajyeri

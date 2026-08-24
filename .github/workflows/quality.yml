@@ -1,0 +1,62 @@
+name: Quality
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ramazan_inanc
+          POSTGRES_PASSWORD: ci-password
+          POSTGRES_DB: ramazan_inanc_booking
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ramazan_inanc"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ramazan_inanc:ci-password@localhost:5432/ramazan_inanc_booking?schema=public
+      NODE_ENV: test
+      ADMIN_SESSION_SECRET: ci-session-secret-with-more-than-thirty-two-characters
+      DISABLE_NOTIFICATION_WORKERS: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Backend install
+        working-directory: backend
+        run: npm ci
+      - name: Prisma verify and migrate
+        working-directory: backend
+        run: |
+          npx prisma validate
+          npx prisma generate
+          npx prisma migrate deploy
+      - name: Backend quality
+        working-directory: backend
+        run: |
+          npm run lint
+          npm test -- --runInBand
+          npm run test:e2e -- --runInBand
+          npm run build
+      - name: Frontend install
+        working-directory: frontend
+        run: npm ci
+      - name: Frontend quality
+        working-directory: frontend
+        run: |
+          npm run lint
+          npm test
+          npm run build

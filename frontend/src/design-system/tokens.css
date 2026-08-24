@@ -1,0 +1,124 @@
+:root {
+  color-scheme: light;
+
+  /* Pearl Editorial Workbench */
+  --ri-ink: #121a23;
+  --ri-ink-strong: #090f15;
+  --ri-ink-soft: #293642;
+  --ri-canvas: #e0e6eb;
+  --ri-canvas-strong: #d6dee4;
+  --ri-surface: #f3f6f8;
+  --ri-surface-raised: #fafbfc;
+  --ri-surface-subtle: #e9eef2;
+  --ri-surface-muted: #dfe6eb;
+  --ri-muted: #50606e;
+  --ri-muted-light: #62717e;
+  --ri-primary: var(--ri-ink);
+  --ri-primary-hover: var(--ri-ink-strong);
+  --ri-primary-foreground: #ffffff;
+  --ri-primary-soft: rgba(18, 26, 35, 0.1);
+  --ri-primary-border: rgba(18, 26, 35, 0.42);
+  --ri-action: var(--ri-ink);
+  --ri-action-hover: var(--ri-ink-strong);
+  --ri-action-foreground: #ffffff;
+  --ri-action-soft: rgba(18, 26, 35, 0.1);
+  --ri-action-border: rgba(18, 26, 35, 0.42);
+  --ri-coral: var(--ri-primary);
+  --ri-coral-soft: var(--ri-primary-soft);
+  --ri-emerald: #087158;
+  --ri-emerald-hover: #065d49;
+  --ri-emerald-soft: rgba(8, 113, 88, 0.1);
+  --ri-mint: var(--ri-emerald);
+  --ri-mint-soft: var(--ri-emerald-soft);
+  --ri-champagne: #d2b176;
+  --ri-champagne-soft: rgba(210, 177, 118, 0.12);
+  --ri-warning: #81570c;
+  --ri-warning-soft: #fff4d7;
+  --ri-danger: #a3312c;
+  --ri-danger-soft: #fbeae8;
+  --ri-border-subtle: rgba(18, 26, 35, 0.16);
+  --ri-border: rgba(18, 26, 35, 0.25);
+  --ri-border-strong: rgba(18, 26, 35, 0.4);
+  --ri-focus: rgba(18, 26, 35, 0.24);
+
+  /* Twilight Pearl: cinematic brand stage */
+  --ri-stage-canvas: #101721;
+  --ri-stage-raised: #172231;
+  --ri-stage-subtle: #131c28;
+  --ri-stage-ink: #f6f8fb;
+  --ri-stage-ink-soft: #c8d1dc;
+  --ri-stage-muted: #8f9ba9;
+  --ri-stage-border: rgba(226, 234, 243, 0.22);
+  --ri-stage-border-strong: rgba(226, 234, 243, 0.36);
+
+  /* Twilight Pearl: daylight booking workbench */
+  --ri-workbench-canvas: var(--ri-canvas);
+  --ri-workbench-canvas-strong: var(--ri-canvas-strong);
+  --ri-workbench-surface: var(--ri-surface);
+  --ri-workbench-raised: var(--ri-surface-raised);
+  --ri-workbench-subtle: var(--ri-surface-subtle);
+  --ri-workbench-ink: var(--ri-ink);
+  --ri-workbench-ink-soft: #293642;
+  --ri-workbench-muted: #50606e;
+  --ri-workbench-muted-light: #62717e;
+  --ri-workbench-border: rgba(9, 15, 21, 0.24);
+  --ri-workbench-border-strong: rgba(9, 15, 21, 0.38);
+
+  --ri-font-body:
+    "Source Sans 3 Variable", Inter, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ri-font-display:
+    "Archivo Variable", "Source Sans 3 Variable", Inter, system-ui, sans-serif;
+
+  /* 8 px layout rhythm; 4 px is reserved for optical micro adjustments. */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+  --space-6: 64px;
+  --space-7: 96px;
+
+  --ri-radius-control: 6px;
+  --ri-radius-card: 8px;
+  --ri-radius-panel: 10px;
+  --ri-radius-stage: 12px;
+
+  --ri-control-height: 44px;
+  --ri-control-height-compact: 38px;
+  --ri-touch-target: 44px;
+
+  --ri-type-display-xl: clamp(2.4rem, 5vw, 4rem);
+  --ri-type-h1: clamp(2rem, 3.6vw, 3rem);
+  --ri-type-h2: clamp(1.55rem, 2.4vw, 2rem);
+  --ri-type-h3: 1.25rem;
+  --ri-type-body-lg: 1rem;
+  --ri-type-body: 0.9375rem;
+  --ri-type-label: 0.8125rem;
+  --ri-type-meta: 0.75rem;
+
+  --ri-shadow-soft:
+    0 8px 24px -18px rgba(16, 24, 32, 0.28), 0 1px 2px rgba(16, 24, 32, 0.06);
+  --ri-shadow-focus:
+    0 18px 42px -26px rgba(16, 24, 32, 0.36), 0 2px 6px rgba(16, 24, 32, 0.08);
+  --ri-shadow-1: var(--ri-shadow-soft);
+  --ri-shadow-2: var(--ri-shadow-focus);
+  --ri-shadow-sm: var(--ri-shadow-soft);
+  --ri-shadow-lg: var(--ri-shadow-focus);
+
+  --ri-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ri-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ri-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ri-speed-press: 120ms;
+  --ri-speed-micro: 160ms;
+  --ri-speed-card: 260ms;
+  --ri-speed-page: 300ms;
+
+  /* Shared layer order. Feature CSS should consume these instead of inventing numbers. */
+  --ri-layer-base: 0;
+  --ri-layer-sticky: 20;
+  --ri-layer-header: 40;
+  --ri-layer-overlay: 50;
+  --ri-layer-dialog: 60;
+  --ri-layer-toast: 70;
+}

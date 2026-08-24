@@ -1,0 +1,22 @@
+Konu: 7. Gün Gün Sonu Raporu (27.07.2026)
+
+Merhaba Sayın Yetkili,
+
+Bugün, gelen iş teklifi doğrultusunda Vitrinova Commerce Suite projesindeki çalışmalara geçici olarak ara verilerek Ramazan İnanç Hair Art Studio için web tabanlı randevu ve salon operasyon sistemi geliştirme çalışmalarına geçilmiştir. Yeni proje tamamlanana kadar çalışmaların bu sistem üzerinde sürdürülmesi planlanmaktadır.
+
+İlk aşamada kuaför ve güzellik salonu sektöründe kullanılan randevu ürünleri incelenmiş; müşteri rezervasyonu, uzman uygunluğu, yönetici onayı, hatırlatma ve güvenli randevu erişimi bakımından ortak ihtiyaçlar belirlenmiştir. Elde edilen sonuçlara göre sistem; React tabanlı responsive frontend, NestJS backend, PostgreSQL veritabanı ve Prisma veri erişim katmanı kullanılarak web-first bir mimariyle oluşturulmuştur.
+
+Müşteri tarafında hizmet, uzman, tarih ve saat seçiminin adım adım yapılabildiği rezervasyon akışı geliştirilmiştir. Salonun 10.00-21.00 çalışma saatleri, hizmet sürelerinin toplanması, yalnızca seçilen işlemin gerçekten sığdığı saatlerin gösterilmesi ve bitiş anının yeni bir randevu başlangıcı olabilmesi sisteme aktarılmıştır. Seçilen saat form doldurulurken beş dakika süreyle tutulmuş; onay bekleyen randevunun ilgili uzmanı bloke etmesi ve yönetici tarafından reddedildiğinde zamanın yeniden açılması sağlanmıştır.
+
+Salon ekibi için bekleyen taleplerin, günlük randevu akışının ve uzman takvimlerinin tek merkezden izlenebildiği yönetici komuta merkezi hazırlanmıştır. Yönetici; randevu talebini inceleyebilmekte, onaylayabilmekte, gerekçesiyle reddedebilmekte veya iptal edebilmektedir. Durum değişiklikleri kayıt altına alınmış ve müşteri ekranında randevunun yönetici onayı beklediği açık biçimde gösterilmiştir.
+
+Randevu erişimi ve bildirim süreci kapalı döngü hâline getirilmiştir. Referans kodu ve telefon numarasıyla başlatılan doğrulama, süreli SMS kodu ve imzalı HttpOnly oturum üzerinden yürütülmüştür. Talebin alınması, onaylanması, reddedilmesi, iptali ve randevudan 30 dakika önce gönderilmesi planlanan hatırlatma mesajları için idempotent bildirim kuyruğu oluşturulmuştur. Müşteriye randevu saatinden 10 dakika önce salonda bulunması gerektiği bilgisi eklenmiştir.
+
+Çalışmanın sonunda saat üretimi, hizmet süresinin çalışma aralığına sığması, çakışan randevuların engellenmesi, beş dakikalık hold, yönetici kararları, güvenli randevu erişimi ve bildirim planlama senaryoları hedefli testlerle kontrol edilmiştir. Backend ve frontend üretim derlemeleri başarıyla tamamlanmış; masaüstü ve dar ekran web görünümleri doğrulanmıştır.
+
+Yapılan çalışmaların açıklamalı ekran görüntüleri, mimari kararları, seçilmiş kaynak kod bölümleri ve kontrol sonuçları "7. Gün Gün Sonu Eki" dosyasında sunulmuştur.
+
+Saygılarımla,
+
+Eray Ülgen
+Pamukkale Üniversitesi - Bilgisayar Mühendisliği Stajyeri

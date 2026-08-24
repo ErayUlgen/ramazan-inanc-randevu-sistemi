@@ -1,0 +1,25 @@
+# Ramazan İnanç Hair Art Studio
+
+> Denizli Merkezefendi'de anatomik saç kesimi ve sakal tasarımı yapan kuaför
+> stüdyosunun online randevu sistemi. Müşteri üyelik açmadan hizmet, uzman ve
+> saat seçip telefon doğrulamasıyla randevu talebi gönderir.
+
+## Salon
+
+- Adres: Yenişafak, 1037 Sk. A Blok No.4 AB, 20300 Merkezefendi/Denizli
+- Telefon: +90 544 263 19 02
+- Çalışma saatleri: Pazartesi–Perşembe, Cumartesi ve Pazar 10.00–21.00; Cuma 10.00–19.00
+
+## Sayfalar
+
+- [Online randevu](/): hizmet, uzman, tarih ve saat seçimi; SMS doğrulamalı talep.
+- [Hesabım](/hesabim): bekleyen, yaklaşan ve geçmiş randevular; iptal ve
+  değişiklik talebi, ön bilgi formları, değerlendirme.
+- [Bekleme listesi](/bekleme-listesi): dolu günler için sıraya girme.
+
+## Notlar
+
+- Randevular yönetici onayından sonra kesinleşir; talep gönderildiğinde
+  randevu henüz kesin değildir.
+- Yönetici paneli (`/admin`) ve müşteri hesabı sayfaları kişisel veri içerir,
+  dizine eklenmemelidir.

@@ -1,0 +1,78 @@
+- generic [ref=f5e2]:
+  - generic [ref=f5e32]:
+    - banner [ref=f5e33]:
+      - generic [ref=f5e34]:
+        - button "Yönetim menüsünü aç" [ref=f5e35] [cursor=pointer]
+        - link "Müşteri randevu sayfasına dön" [ref=f5e38] [cursor=pointer]:
+          - /url: /
+        - strong [ref=f5e42]: Hizmetler
+      - 'button "Çıkış: yönetici oturumunu kapat" [ref=f5e44] [cursor=pointer]'
+    - main [ref=f5e47]:
+      - generic [ref=f5e48]:
+        - generic [ref=f5e49]:
+          - generic [ref=f5e50]: Rezervasyon kataloğu
+          - heading "Hizmetler" [level=1] [ref=f5e51]
+          - paragraph [ref=f5e52]: Süre, fiyat ve online görünürlüğü yönetin. Eski randevuların snapshot değerleri değişmez.
+        - button "Hizmet ekle" [ref=f5e54] [cursor=pointer]
+      - region "Hizmet kataloğu" [ref=f5e57]:
+        - generic [ref=f5e58]:
+          - generic [ref=f5e59]:
+            - generic [ref=f5e62]: Hizmet ara
+            - searchbox "Hizmet ara" [ref=f5e63]
+          - generic "Katalog özeti" [ref=f5e64]:
+            - generic [ref=f5e65]:
+              - term [ref=f5e66]: Hizmet
+              - definition [ref=f5e67]: "7"
+            - generic [ref=f5e68]:
+              - term [ref=f5e69]: Aktif
+              - definition [ref=f5e70]: "7"
+            - generic [ref=f5e71]:
+              - term [ref=f5e72]: Online
+              - definition [ref=f5e73]: "7"
+        - generic [ref=f5e74]:
+          - generic [ref=f5e75]:
+            - generic [ref=f5e77]:
+              - strong [ref=f5e78]: Erkek Hizmetleri
+              - generic [ref=f5e79]: 4 hizmet
+            - generic [ref=f5e80]:
+              - button "Anatomik Saç Kesimi hizmetini düzenle" [ref=f5e81] [cursor=pointer]:
+                - strong [ref=f5e87]: Anatomik Saç Kesimi
+                - generic [ref=f5e88]:
+                  - generic [ref=f5e89]: 60 dk
+                  - strong [ref=f5e92]: ₺900
+              - button "Saç + Sakal Tasarımı hizmetini düzenle" [ref=f5e95] [cursor=pointer]:
+                - strong [ref=f5e101]: Saç + Sakal Tasarımı
+                - generic [ref=f5e102]:
+                  - generic [ref=f5e103]: 75 dk
+                  - strong [ref=f5e106]: ₺1.250
+              - button "Sakal Tasarımı hizmetini düzenle" [ref=f5e109] [cursor=pointer]:
+                - strong [ref=f5e115]: Sakal Tasarımı
+                - generic [ref=f5e116]:
+                  - generic [ref=f5e117]: 30 dk
+                  - strong [ref=f5e120]: ₺500
+              - button "Saç Yıkama & Şekillendirme hizmetini düzenle" [ref=f5e123] [cursor=pointer]:
+                - strong [ref=f5e129]: Saç Yıkama & Şekillendirme
+                - generic [ref=f5e130]:
+                  - generic [ref=f5e131]: 30 dk
+                  - strong [ref=f5e134]: ₺450
+          - generic [ref=f5e137]:
+            - generic [ref=f5e139]:
+              - strong [ref=f5e140]: Kadın Hizmetleri
+              - generic [ref=f5e141]: 3 hizmet
+            - generic [ref=f5e142]:
+              - button "Kadın Anatomik Saç Kesimi hizmetini düzenle" [ref=f5e143] [cursor=pointer]:
+                - strong [ref=f5e149]: Kadın Anatomik Saç Kesimi
+                - generic [ref=f5e150]:
+                  - generic [ref=f5e151]: 75 dk
+                  - strong [ref=f5e154]: ₺1.500
+              - button "Fön hizmetini düzenle" [ref=f5e157] [cursor=pointer]:
+                - strong [ref=f5e163]: Fön
+                - generic [ref=f5e164]:
+                  - generic [ref=f5e165]: 45 dk
+                  - strong [ref=f5e168]: ₺650
+              - button "Kaş Tasarımı hizmetini düzenle" [ref=f5e171] [cursor=pointer]:
+                - strong [ref=f5e177]: Kaş Tasarımı
+                - generic [ref=f5e178]:
+                  - generic [ref=f5e179]: 15 dk
+                  - strong [ref=f5e182]: ₺350
+  - region "Notifications alt+T"

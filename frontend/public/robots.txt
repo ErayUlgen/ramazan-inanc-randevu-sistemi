@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /hesabim
+Disallow: /degerlendir/
+Disallow: /bekleme-listesi/
+
+# Yönetici paneli, müşteri hesabı ve token taşıyan bağlantılar dizine eklenmez.
+# Canlı alan adı belli olduğunda buraya mutlak bir Sitemap satırı eklenmelidir:
+# Sitemap: https://<alan-adi>/sitemap.xml

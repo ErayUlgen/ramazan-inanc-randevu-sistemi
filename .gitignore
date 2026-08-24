@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*.local
+*.log
+.DS_Store
+frontend/.vite/
+frontend/playwright-report/
+frontend/test-results/
+backend/generated/
+.superdesign/tmp/
+artifacts/backups/
+.firecrawl/
+__pycache__/
+*.pyc

@@ -1,0 +1,130 @@
+- generic [ref=e2]:
+  - generic [ref=e32]:
+    - banner [ref=e33]:
+      - generic [ref=e34]:
+        - button "Yönetim menüsünü aç" [ref=e35] [cursor=pointer]
+        - link "Müşteri randevu sayfasına dön" [ref=e38] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e41]:
+          - generic [ref=e42]: Salon yönetimi
+          - strong [ref=e43]: Randevular
+      - generic [ref=e44]:
+        - button "Müşteri görünümü" [ref=e45] [cursor=pointer]
+        - generic [ref=e49]: Güncel · 12:42
+        - button "Randevu panosunu yenile" [ref=e51] [cursor=pointer]
+        - 'button "Çıkış: yönetici oturumunu kapat" [ref=e54] [cursor=pointer]':
+          - generic [ref=e57]: Çıkış
+    - main [ref=e58]:
+      - heading "Randevular" [level=1] [ref=e59]
+      - region "Pano kontrolleri" [ref=e60]:
+        - generic [ref=e61]:
+          - tablist "Randevu görünümü" [ref=e62]:
+            - tab "Gün" [selected] [ref=e63] [cursor=pointer]
+            - tab "Hafta" [ref=e64] [cursor=pointer]
+            - tab "Liste" [ref=e65] [cursor=pointer]
+          - generic [ref=e66]:
+            - button "Önceki gün" [ref=e67] [cursor=pointer]
+            - generic [ref=e70] [cursor=pointer]:
+              - generic [ref=e74]:
+                - generic [ref=e75]: Seçili gün
+                - strong [ref=e76]: 30 Temmuz 2026 Perşembe
+              - textbox "Tarih seç" [ref=e77]: 2026-07-30
+            - button "Sonraki gün" [ref=e78] [cursor=pointer]
+            - button "Bugün" [ref=e81] [cursor=pointer]
+          - button "Yeni randevu" [ref=e82] [cursor=pointer]
+        - generic [ref=e85]:
+          - generic [ref=e86]:
+            - generic [ref=e87]: Uzman
+            - combobox "Uzman" [ref=e88] [cursor=pointer]:
+              - option "Tüm uzmanlar" [selected]
+              - option "Ramazan İnanç"
+              - option "Hikmet Çetin Aygördü"
+              - option "Ali Poyraz Yılmaz"
+              - option "Velihan Uluşan"
+              - option "Mustafa Akpiliç"
+          - generic [ref=e89]:
+            - generic [ref=e90]: Durum
+            - combobox "Durum" [ref=e91] [cursor=pointer]:
+              - option "Tüm durumlar" [selected]
+              - option "Onay bekliyor"
+              - option "Onaylandı"
+              - option "Saat tutuluyor"
+              - option "Reddedildi"
+              - option "İptal edildi"
+          - generic [ref=e92]:
+            - generic [ref=e93]: Kaynak
+            - combobox "Kaynak" [ref=e94] [cursor=pointer]:
+              - option "Tüm kaynaklar" [selected]
+              - option "Online"
+              - option "Telefon"
+              - option "Yönetici"
+              - option "Salondan"
+          - generic [ref=e95]:
+            - generic [ref=e96]: Ara
+            - searchbox "Ara" [ref=e99]
+      - region "Günün operasyon özeti" [ref=e100]:
+        - generic [ref=e106]:
+          - generic [ref=e107]: Onay bekleyen
+          - strong [ref=e108]: "0"
+          - emphasis [ref=e109]: Kuyruk temiz
+        - generic [ref=e115]:
+          - generic [ref=e116]: Günün akışı
+          - strong [ref=e117]: "2"
+          - emphasis [ref=e118]: 2 onaylı randevu
+        - generic [ref=e124]:
+          - generic [ref=e125]: Sıradaki randevu
+          - strong [ref=e126]: —
+          - emphasis [ref=e127]: Bugün sırada randevu yok
+        - generic [ref=e133]:
+          - generic [ref=e134]: Geçmiş akış
+          - strong [ref=e135]: "1"
+          - emphasis [ref=e136]: 1 gelmedi · sistem sakin
+      - tablist "Yönetici görünümü" [ref=e137]:
+        - tab "Günlük akış" [selected] [ref=e138] [cursor=pointer]
+        - tab "Bekleyenler 0" [ref=e139] [cursor=pointer]:
+          - text: Bekleyenler
+          - generic [ref=e140]: "0"
+      - generic [ref=e141]:
+        - complementary [ref=e142]:
+          - generic [ref=e143]:
+            - generic [ref=e144]:
+              - generic [ref=e145]: Karar merkezi
+              - heading "Onay bekleyenler" [level=2] [ref=e146]
+            - generic "0 kayıt" [ref=e147]: "0"
+          - generic [ref=e149]:
+            - strong [ref=e154]: Bekleyen talep yok
+            - paragraph [ref=e155]: Yeni talepler bu kuyrukta görünecek.
+        - region [ref=e156]:
+          - generic [ref=e157]:
+            - generic [ref=e158]:
+              - generic [ref=e159]: Canlı plan
+              - heading "Günlük akış" [level=2] [ref=e160]
+            - emphasis [ref=e161]: 15 dakikalık ritim
+          - generic [ref=e163]:
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - generic "Ramazan İnanç" [ref=e166]: Rİ
+                - strong [ref=e169]: Ramazan İnanç
+                - generic [ref=e170]: "1"
+              - button "13:00 14:00 Eray Ülgen Anatomik Saç Kesimi Gelmedi" [ref=e172] [cursor=pointer]:
+                - generic [ref=e173]:
+                  - strong [ref=e174]: 13:00
+                  - generic [ref=e175]: 14:00
+                - generic [ref=e176]:
+                  - strong [ref=e177]: Eray Ülgen
+                  - generic [ref=e178]: Anatomik Saç Kesimi
+                - emphasis [ref=e179]: Gelmedi
+            - generic [ref=e180]:
+              - generic [ref=e181]:
+                - generic "Velihan Uluşan" [ref=e182]: VU
+                - strong [ref=e185]: Velihan Uluşan
+                - generic [ref=e186]: "1"
+              - button "16:00 16:30 Eray Ülgen Saç Yıkama & Şekillendirme Onaylı" [ref=e188] [cursor=pointer]:
+                - generic [ref=e189]:
+                  - strong [ref=e190]: 16:00
+                  - generic [ref=e191]: 16:30
+                - generic [ref=e192]:
+                  - strong [ref=e193]: Eray Ülgen
+                  - generic [ref=e194]: Saç Yıkama & Şekillendirme
+                - emphasis [ref=e195]: Onaylı
+  - region "Notifications alt+T"
