@@ -1,34 +1,15 @@
 import type { CSSProperties } from "react";
 
 const palettes = [
-  ["#2B333D", "#0E141B"],
-  ["#32C9A0", "#13755F"],
-  ["#A96AE8", "#6B35A8"],
-  ["#E6A91D", "#A66700"],
-  ["#F06C83", "#B43D59"],
-  ["#7068DB", "#433A9A"],
-  ["#24A69B", "#19726B"],
+  ["#293642", "#090F15"],
+  ["#0E9A78", "#065D49"],
   ["#D2B176", "#8A6A37"],
 ] as const;
 
-const professionalPalette = (name: string) => {
-  const normalized = name
-    .toLocaleLowerCase("tr-TR")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "");
-
-  if (normalized.startsWith("hikmet cetin")) {
-    return {
-      colors: ["#6EA1FF", "#2457C5"] as const,
-      ink: "#FFFFFF",
-    };
-  }
-
-  return {
-    colors: palettes[hashName(name) % palettes.length],
-    ink: "#FFFFFF",
-  };
-};
+const professionalPalette = (name: string) => ({
+  colors: palettes[hashName(name) % palettes.length],
+  ink: "#FFFFFF",
+});
 
 const hashName = (name: string) => {
   let hash = 0;

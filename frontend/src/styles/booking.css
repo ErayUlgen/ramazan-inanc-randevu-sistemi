@@ -130,8 +130,10 @@ button:disabled {
   filter: brightness(0) invert(1);
 }
 
-.wordmark:hover .studio-wordmark__official-logo {
-  transform: translateX(-50%) scale(1.045) rotate(-1deg);
+@media (hover: hover) and (pointer: fine) {
+  .wordmark:hover .studio-wordmark__official-logo {
+    transform: translateX(-50%) scale(1.045) rotate(-1deg);
+  }
 }
 
 .studio-wordmark__copy {
@@ -183,8 +185,10 @@ button:disabled {
   color: currentColor;
 }
 
-.brand-header__meta > span:hover {
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .brand-header__meta > span:hover {
+    transform: translateY(-1px);
+  }
 }
 
 .brand-header__location {
@@ -192,8 +196,10 @@ button:disabled {
   text-decoration: none;
 }
 
-.brand-header__location:hover {
-  color: #ffffff;
+@media (hover: hover) and (pointer: fine) {
+  .brand-header__location:hover {
+    color: #ffffff;
+  }
 }
 
 .brand-header__location:focus-visible {
@@ -232,11 +238,18 @@ button:disabled {
     transform var(--ri-speed-micro) var(--ri-ease);
 }
 
-.brand-header__account:hover {
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(18, 29, 43, 0.78);
-  color: #ffffff;
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .brand-header__account:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(18, 29, 43, 0.78);
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+}
+
+.brand-header__account:active {
+  transform: scale(0.97);
+  transition-duration: var(--ri-speed-press);
 }
 
 .brand-header__account:focus-visible {
@@ -402,8 +415,10 @@ button:disabled {
   transition: transform var(--ri-speed-card) var(--ri-ease);
 }
 
-.intro-proof > span:hover svg {
-  transform: rotate(-5deg) scale(1.08);
+@media (hover: hover) and (pointer: fine) {
+  .intro-proof > span:hover svg {
+    transform: rotate(-5deg) scale(1.08);
+  }
 }
 
 .intro-proof b {
@@ -701,9 +716,11 @@ button:disabled {
     background var(--ri-speed-micro);
 }
 
-.category-tabs button:hover {
-  border-color: var(--ri-primary-border);
-  color: var(--ri-primary);
+@media (hover: hover) and (pointer: fine) {
+  .category-tabs button:hover {
+    border-color: var(--ri-primary-border);
+    color: var(--ri-primary);
+  }
 }
 
 .category-tabs button.is-active {
@@ -713,11 +730,13 @@ button:disabled {
   box-shadow: 0 12px 24px -17px rgba(8, 13, 18, 0.8);
 }
 
-.category-tabs button.is-active:hover {
-  border-color: var(--ri-primary-hover);
-  background: var(--ri-primary-hover);
-  color: var(--ri-primary-foreground);
-  box-shadow: 0 14px 26px -17px rgba(8, 13, 18, 0.78);
+@media (hover: hover) and (pointer: fine) {
+  .category-tabs button.is-active:hover {
+    border-color: var(--ri-primary-hover);
+    background: var(--ri-primary-hover);
+    color: var(--ri-primary-foreground);
+    box-shadow: 0 14px 26px -17px rgba(8, 13, 18, 0.78);
+  }
 }
 
 .service-grid {
@@ -743,7 +762,13 @@ button:disabled {
   transition:
     border-color var(--ri-speed-card) var(--ri-ease),
     background var(--ri-speed-card) var(--ri-ease),
-    box-shadow var(--ri-speed-card) var(--ri-ease);
+    box-shadow var(--ri-speed-card) var(--ri-ease),
+    transform var(--ri-speed-press) var(--ri-ease);
+}
+
+.service-option:active {
+  transform: scale(0.99);
+  transition-duration: var(--ri-speed-press);
 }
 
 .service-option::before {
@@ -759,10 +784,12 @@ button:disabled {
   transition: transform var(--ri-speed-card) var(--ri-ease);
 }
 
-.service-option:hover {
-  border-color: var(--ri-primary-border);
-  background: var(--ri-surface);
-  box-shadow: var(--ri-shadow-soft);
+@media (hover: hover) and (pointer: fine) {
+  .service-option:hover {
+    border-color: var(--ri-primary-border);
+    background: var(--ri-surface);
+    box-shadow: var(--ri-shadow-soft);
+  }
 }
 
 .service-option.is-selected {
@@ -865,17 +892,25 @@ button:disabled {
   transition:
     border-color var(--ri-speed-card) var(--ri-ease),
     background var(--ri-speed-card),
-    box-shadow var(--ri-speed-card);
+    box-shadow var(--ri-speed-card),
+    transform var(--ri-speed-press) var(--ri-ease);
 }
 
-.professional-option:hover {
-  border-color: var(--ri-primary-border);
-  background: var(--ri-surface);
-  box-shadow: var(--ri-shadow-soft);
+@media (hover: hover) and (pointer: fine) {
+  .professional-option:hover {
+    border-color: var(--ri-primary-border);
+    background: var(--ri-surface);
+    box-shadow: var(--ri-shadow-soft);
+  }
+
+  .professional-option:hover .professional-avatar {
+    transform: scale(1.035) rotate(-1.5deg);
+  }
 }
 
-.professional-option:hover .professional-avatar {
-  transform: scale(1.035) rotate(-1.5deg);
+.professional-option:active {
+  transform: scale(0.99);
+  transition-duration: var(--ri-speed-press);
 }
 
 .professional-option.is-selected {
@@ -1055,6 +1090,12 @@ button:disabled {
   gap: 10px;
 }
 
+/* Tekli uzman sayısında (ör. 5) son kart yarım genişlikte yalnız kalmasın
+   diye tam satırı kaplar. */
+.professional-grid > button:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
 .reserved-time-mark {
   width: 34px;
   height: 34px;
@@ -1089,9 +1130,11 @@ button:disabled {
   transition: all var(--ri-speed-card) var(--ri-ease);
 }
 
-.date-strip button:hover {
-  border-color: var(--ri-primary-border);
-  background: var(--ri-surface);
+@media (hover: hover) and (pointer: fine) {
+  .date-strip button:hover {
+    border-color: var(--ri-primary-border);
+    background: var(--ri-surface);
+  }
 }
 
 .date-strip button small,
@@ -1188,9 +1231,11 @@ button:disabled {
   transition: all var(--ri-speed-card) var(--ri-ease);
 }
 
-.time-grid button:hover {
-  border-color: var(--ri-primary-border);
-  background: var(--ri-surface);
+@media (hover: hover) and (pointer: fine) {
+  .time-grid button:hover {
+    border-color: var(--ri-primary-border);
+    background: var(--ri-surface);
+  }
 }
 
 .time-grid button strong {
@@ -1361,8 +1406,10 @@ button:disabled {
     box-shadow var(--ri-speed-micro);
 }
 
-.ri-button:hover:not(:disabled) {
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .ri-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
 }
 
 .ri-button:active:not(:disabled) {
@@ -1379,21 +1426,24 @@ button:disabled {
   box-shadow: 0 14px 28px -18px rgba(8, 13, 18, 0.84);
 }
 
-.ri-button--primary:hover:not(:disabled) {
-  border-color: var(--ri-primary-hover);
-  background: var(--ri-primary-hover);
-  color: #fff !important;
-  box-shadow: 0 15px 28px -17px rgba(8, 13, 18, 0.84);
-}
-
 .ri-button--primary :where(svg, span, strong, b) {
   color: #fff !important;
 }
 .ri-button--primary svg {
   transition: transform var(--ri-speed-micro) var(--ri-ease);
 }
-.ri-button--primary:hover:not(:disabled) svg {
-  transform: translateX(3px);
+
+@media (hover: hover) and (pointer: fine) {
+  .ri-button--primary:hover:not(:disabled) {
+    border-color: var(--ri-primary-hover);
+    background: var(--ri-primary-hover);
+    color: #fff !important;
+    box-shadow: 0 15px 28px -17px rgba(8, 13, 18, 0.84);
+  }
+
+  .ri-button--primary:hover:not(:disabled) svg {
+    transform: translateX(3px);
+  }
 }
 
 .ri-button--secondary {
@@ -1402,9 +1452,11 @@ button:disabled {
   color: var(--ri-ink);
 }
 
-.ri-button--secondary:hover:not(:disabled) {
-  border-color: var(--ri-primary-border);
-  color: var(--ri-primary);
+@media (hover: hover) and (pointer: fine) {
+  .ri-button--secondary:hover:not(:disabled) {
+    border-color: var(--ri-primary-border);
+    color: var(--ri-primary);
+  }
 }
 
 .booking-summary {
@@ -1503,8 +1555,10 @@ button:disabled {
   transition: transform var(--ri-speed-micro) var(--ri-ease);
 }
 
-.summary-service:hover {
-  transform: translateX(2px);
+@media (hover: hover) and (pointer: fine) {
+  .summary-service:hover {
+    transform: translateX(2px);
+  }
 }
 
 .summary-service > span {
@@ -1556,8 +1610,10 @@ button:disabled {
   transition: transform var(--ri-speed-micro) var(--ri-ease);
 }
 
-.booking-summary__facts > div:hover {
-  transform: translateX(2px);
+@media (hover: hover) and (pointer: fine) {
+  .booking-summary__facts > div:hover {
+    transform: translateX(2px);
+  }
 }
 
 .booking-summary__facts dt {
@@ -1579,8 +1635,10 @@ button:disabled {
   height: 21px;
 }
 
-.booking-summary__facts > div:hover dt svg {
-  transform: rotate(-6deg) scale(1.06);
+@media (hover: hover) and (pointer: fine) {
+  .booking-summary__facts > div:hover dt svg {
+    transform: rotate(-6deg) scale(1.06);
+  }
 }
 
 .booking-summary__facts dd {
@@ -2860,14 +2918,16 @@ body {
   padding-block: var(--space-2);
 }
 
-.category-tabs button:hover,
-.service-option:hover,
-.professional-option:hover,
-.date-strip button:hover,
-.time-grid button:hover {
-  border-color: var(--ri-primary-border);
-  background: var(--ri-surface-raised);
-  color: var(--ri-ink);
+@media (hover: hover) and (pointer: fine) {
+  .category-tabs button:hover,
+  .service-option:hover,
+  .professional-option:hover,
+  .date-strip button:hover,
+  .time-grid button:hover {
+    border-color: var(--ri-primary-border);
+    background: var(--ri-surface-raised);
+    color: var(--ri-ink);
+  }
 }
 
 .category-tabs button.is-active,
@@ -2973,23 +3033,27 @@ body {
   }
 }
 
-.service-option:hover,
-.professional-option:hover {
-  box-shadow: none;
+@media (hover: hover) and (pointer: fine) {
+  .service-option:hover,
+  .professional-option:hover {
+    box-shadow: none;
+  }
+
+  .service-option:hover {
+    border-color: var(--ri-border-strong);
+    box-shadow: inset 0 0 0 1px var(--ri-border-strong);
+  }
 }
 
-.service-option:hover {
-  border-color: var(--ri-border-strong);
-  box-shadow: inset 0 0 0 1px var(--ri-border-strong);
-}
+@media (hover: hover) and (pointer: fine) {
+  .service-option.is-selected:hover {
+    border-color: var(--ri-action);
+    box-shadow: inset 3px 0 0 var(--ri-action);
+  }
 
-.service-option.is-selected:hover {
-  border-color: var(--ri-action);
-  box-shadow: inset 3px 0 0 var(--ri-action);
-}
-
-.professional-option:hover .professional-avatar {
-  transform: none;
+  .professional-option:hover .professional-avatar {
+    transform: none;
+  }
 }
 
 .professional-option {
@@ -3025,8 +3089,10 @@ body {
   min-height: 52px;
 }
 
-.ri-button:hover:not(:disabled) {
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .ri-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
 }
 
 .ri-button--primary,
@@ -3035,14 +3101,6 @@ body {
   background: var(--ri-action);
   color: var(--ri-action-foreground) !important;
   box-shadow: 0 10px 24px -18px rgba(8, 13, 18, 0.82);
-}
-
-.ri-button--primary:hover:not(:disabled),
-.slot-call-button:hover:not(:disabled) {
-  border-color: var(--ri-action-hover);
-  background: var(--ri-action-hover);
-  color: var(--ri-action-foreground) !important;
-  box-shadow: 0 14px 28px -18px rgba(8, 13, 18, 0.88);
 }
 
 .ri-button--primary :where(svg, span, strong, b),
@@ -3055,9 +3113,19 @@ body {
   background: var(--ri-surface-raised);
 }
 
-.ri-button--secondary:hover:not(:disabled) {
-  border-color: var(--ri-action-border);
-  color: var(--ri-action);
+@media (hover: hover) and (pointer: fine) {
+  .ri-button--primary:hover:not(:disabled),
+  .slot-call-button:hover:not(:disabled) {
+    border-color: var(--ri-action-hover);
+    background: var(--ri-action-hover);
+    color: var(--ri-action-foreground) !important;
+    box-shadow: 0 14px 28px -18px rgba(8, 13, 18, 0.88);
+  }
+
+  .ri-button--secondary:hover:not(:disabled) {
+    border-color: var(--ri-action-border);
+    color: var(--ri-action);
+  }
 }
 
 .booking-summary {
@@ -3151,10 +3219,17 @@ body {
     transform var(--ri-speed-micro) var(--ri-ease);
 }
 
-.date-navigator > button:hover:not(:disabled) {
-  border-color: var(--ri-primary-border);
-  color: var(--ri-primary);
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .date-navigator > button:hover:not(:disabled) {
+    border-color: var(--ri-primary-border);
+    color: var(--ri-primary);
+    transform: translateY(-1px);
+  }
+}
+
+.date-navigator > button:active:not(:disabled) {
+  transform: scale(0.93);
+  transition-duration: var(--ri-speed-press);
 }
 
 .date-navigator > button:disabled {
@@ -3482,7 +3557,7 @@ body {
 }
 
 .living-qr__copy button {
-  min-height: 40px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -3494,15 +3569,21 @@ body {
   font-size: 12px;
   font-weight: 700;
   transition:
-    transform var(--ri-speed-micro) var(--ri-ease),
+    transform var(--ri-speed-press) var(--ri-ease),
     background var(--ri-speed-micro),
     border-color var(--ri-speed-micro);
 }
 
-.living-qr__copy button:hover {
-  border-color: var(--ri-ink);
-  background: var(--ri-surface-subtle);
-  transform: none;
+@media (hover: hover) and (pointer: fine) {
+  .living-qr__copy button:hover {
+    border-color: var(--ri-ink);
+    background: var(--ri-surface-subtle);
+  }
+}
+
+.living-qr__copy button:active {
+  transform: scale(0.96);
+  transition-duration: var(--ri-speed-press);
 }
 
 .living-qr--compact .living-qr__stage {

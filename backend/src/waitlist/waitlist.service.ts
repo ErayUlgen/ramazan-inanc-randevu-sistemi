@@ -26,18 +26,15 @@ import {
 } from 'crypto';
 import { ScheduleValidationService } from '../availability/schedule-validation.service';
 import { BookingPolicyService } from '../booking-policy/booking-policy.service';
-import {
-  minuteOfDay,
-  toBranchDateTime,
-  toDateKey,
-} from '../common/branch-time';
+import { minuteOfDay, toDateKey } from '../common/branch-time';
+import { sealActionToken } from '../common/action-token';
 import { normalizeTurkishMobile } from '../common/phone';
 import { lockBranchSchedule } from '../common/schedule-lock';
 import { NotificationOutboxService } from '../notifications/notification-outbox.service';
 import { SmsGatewayService } from '../notifications/sms-gateway.service';
 import { OperationsAuditService } from '../operations-audit/operations-audit.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { ManualWaitlistOfferDto } from './dto/manual-waitlist-offer.dto';
+import type { AdminIdentity } from '../admin/admin-session.service';
 import { RequestWaitlistCodeDto } from './dto/request-waitlist-code.dto';
 import { VerifyWaitlistCodeDto } from './dto/verify-waitlist-code.dto';
 import {
@@ -54,7 +51,10 @@ const ENTRY_INCLUDE = {
     orderBy: { sortOrder: 'asc' as const },
   },
   offers: {
-    include: { professional: true },
+    include: {
+      professional: true,
+      acceptedBooking: { select: { publicCode: true, status: true } },
+    },
     orderBy: { createdAt: 'desc' as const },
     take: 20,
   },
@@ -62,6 +62,16 @@ const ENTRY_INCLUDE = {
 
 type EntryRecord = Prisma.WaitlistEntryGetPayload<{
   include: typeof ENTRY_INCLUDE;
+}>;
+
+const OFFER_ACCESS_INCLUDE = {
+  professional: true,
+  acceptedBooking: { select: { publicCode: true, status: true } },
+  waitlistEntry: { include: ENTRY_INCLUDE },
+} satisfies Prisma.WaitlistOfferInclude;
+
+type OfferAccessRecord = Prisma.WaitlistOfferGetPayload<{
+  include: typeof OFFER_ACCESS_INCLUDE;
 }>;
 
 type ChallengePayload = {
@@ -77,9 +87,27 @@ type ChallengePayload = {
   note?: string;
 };
 
+type RecoveryEventShape = {
+  id: string;
+  branchId: string;
+  startAt: Date;
+  endAt: Date;
+  professionalId: string | null;
+  sourceType: string;
+  createdAt: Date;
+};
+
+type WaitlistCandidate = {
+  entry: EntryRecord;
+  professional: { id: string; name: string };
+  totalDurationMinutes: number;
+  totalPriceKurus: number;
+};
+
 @Injectable()
 export class WaitlistService {
   readonly cookieName = 'ri_waitlist_access';
+  readonly offerCookieName = 'ri_waitlist_offer_access';
 
   constructor(
     private readonly prisma: PrismaService,
@@ -147,6 +175,7 @@ export class WaitlistService {
     if (phoneCount >= 5 || ipCount >= 20) {
       return {
         accepted: true,
+        rateLimited: true,
         resendAfterSeconds: policy.otpResendSeconds,
         expiresInSeconds: OTP_LIFETIME_MS / 1000,
       };
@@ -289,7 +318,44 @@ export class WaitlistService {
   }
 
   async current(token: string | undefined) {
+    await this.expireOffers();
+    if (!token) return null;
     return this.toDto(await this.requireByToken(token));
+  }
+
+  async accessOffer(token: string) {
+    const offer = await this.requireOfferByToken(token);
+    if (
+      offer.status !== WaitlistOfferStatus.PENDING ||
+      offer.expiresAt <= new Date()
+    ) {
+      throw new ConflictException(
+        'Bu saatin kabul süresi doldu. Bekleme kaydınız yeni boşluklar için aktif kalır.',
+      );
+    }
+    return {
+      offer: this.toOfferDto(offer),
+      expiresAt: offer.expiresAt,
+    };
+  }
+
+  async currentOffer(token: string | undefined) {
+    const offer = await this.requireOfferByToken(token);
+    if (
+      offer.status === WaitlistOfferStatus.PENDING &&
+      offer.expiresAt <= new Date()
+    ) {
+      await this.expireOffers();
+      throw new ConflictException(
+        'Bu saatin kabul süresi doldu. Bekleme kaydınız yeni boşluklar için aktif kalır.',
+      );
+    }
+    return this.toOfferDto(offer);
+  }
+
+  async acceptCurrentOffer(token: string | undefined) {
+    const offer = await this.requireOfferByToken(token);
+    return this.acceptOfferForEntry(offer.waitlistEntry, offer.id);
   }
 
   async cancelCurrent(token: string | undefined) {
@@ -351,6 +417,10 @@ export class WaitlistService {
 
   async acceptOffer(token: string | undefined, offerId: string) {
     const entry = await this.requireByToken(token);
+    return this.acceptOfferForEntry(entry, offerId);
+  }
+
+  private async acceptOfferForEntry(entry: EntryRecord, offerId: string) {
     const offer = entry.offers.find((item) => item.id === offerId);
     if (
       !offer ||
@@ -363,7 +433,7 @@ export class WaitlistService {
       return await this.prisma.$transaction(async (transaction) => {
         await lockBranchSchedule(transaction, entry.branchId);
         const fresh = await transaction.waitlistOffer.findUnique({
-          where: { id: offer.id },
+          where: { id: offerId },
           include: {
             waitlistEntry: {
               include: {
@@ -425,7 +495,7 @@ export class WaitlistService {
             branchId: entry.branchId,
             professionalId: fresh.professionalId,
             customerId: fresh.waitlistEntry.customerId,
-            status: BookingStatus.PENDING_APPROVAL,
+            status: BookingStatus.CONFIRMED,
             source: BookingSource.ONLINE,
             startAt: fresh.startAt,
             endAt: fresh.endAt,
@@ -435,6 +505,7 @@ export class WaitlistService {
             customerPhoneSnapshot: fresh.waitlistEntry.phone,
             customerNote: fresh.waitlistEntry.note,
             notificationsEnabled: true,
+            approvedAt: new Date(),
             visitStatus: VisitStatus.SCHEDULED,
             visitStatusUpdatedAt: new Date(),
             items: {
@@ -499,8 +570,52 @@ export class WaitlistService {
         };
       });
     } catch (error) {
+      await this.releaseUnavailableOffer(entry, offerId, error);
       this.rethrowConflict(error);
     }
+  }
+
+  private async releaseUnavailableOffer(
+    entry: EntryRecord,
+    offerId: string,
+    error: unknown,
+  ) {
+    const message = error instanceof Error ? error.message : String(error);
+    const isAvailabilityConflict =
+      error instanceof ConflictException ||
+      message.includes('booking_no_overlap') ||
+      message.includes('exclusion constraint');
+    if (!isAvailabilityConflict) return;
+
+    await this.prisma.$transaction(async (transaction) => {
+      const changed = await transaction.waitlistOffer.updateMany({
+        where: { id: offerId, status: WaitlistOfferStatus.PENDING },
+        data: { status: WaitlistOfferStatus.FAILED },
+      });
+      if (changed.count !== 1) return;
+      await transaction.waitlistEntry.updateMany({
+        where: { id: entry.id, status: WaitlistEntryStatus.OFFERED },
+        data: {
+          status: WaitlistEntryStatus.ACTIVE,
+          failedOfferCount: { increment: 1 },
+        },
+      });
+      const offer = await transaction.waitlistOffer.findUnique({
+        where: { id: offerId },
+      });
+      if (offer) {
+        await transaction.slotRecoveryEvent.create({
+          data: {
+            branchId: offer.branchId,
+            startAt: offer.startAt,
+            endAt: offer.endAt,
+            professionalId: offer.professionalId,
+            sourceType: 'WAITLIST_OFFER_FAILED',
+            sourceId: offer.id,
+          },
+        });
+      }
+    });
   }
 
   async listAdmin(branchId: string, status?: WaitlistEntryStatus) {
@@ -514,23 +629,145 @@ export class WaitlistService {
     return entries.map((entry) => this.toDto(entry));
   }
 
-  async createManualOffer(entryId: string, dto: ManualWaitlistOfferDto) {
-    const entry = await this.prisma.waitlistEntry.findUnique({
-      where: { id: entryId },
-      include: ENTRY_INCLUDE,
-    });
-    if (!entry)
-      throw new NotFoundException('Bekleme listesi kaydı bulunamadı.');
-    const startAt = toBranchDateTime(dto.date, dto.startTime);
-    return this.offerEntry(entry, dto.professionalId, startAt);
+  async listAdminSuggestions(branchId: string) {
+    await this.expireOffers();
+    const [events, policy] = await Promise.all([
+      this.prisma.slotRecoveryEvent.findMany({
+        where: {
+          branchId,
+          status: {
+            in: [SlotRecoveryStatus.PENDING, SlotRecoveryStatus.FAILED],
+          },
+          availableAt: { lte: new Date() },
+          startAt: { gt: new Date() },
+        },
+        orderBy: [{ startAt: 'asc' }, { createdAt: 'asc' }],
+        take: 50,
+      }),
+      this.policies.get(branchId),
+    ]);
+
+    const suggestions = [];
+    for (const event of events) {
+      const candidates = await this.findCandidatesForRecoveryEvent(event);
+      const professional = event.professionalId
+        ? await this.prisma.professional.findFirst({
+            where: { id: event.professionalId, branchId },
+            select: { id: true, name: true },
+          })
+        : null;
+      suggestions.push({
+        id: event.id,
+        startAt: event.startAt.toISOString(),
+        endAt: event.endAt.toISOString(),
+        capacityMinutes: Math.round(
+          (event.endAt.getTime() - event.startAt.getTime()) / 60_000,
+        ),
+        offerTtlMinutes: policy.waitlistOfferTtlMinutes,
+        professional,
+        sourceType: event.sourceType,
+        createdAt: event.createdAt.toISOString(),
+        candidates: candidates.map((candidate) => ({
+          entryId: candidate.entry.id,
+          fullName: candidate.entry.fullName,
+          phoneMasked: this.maskPhone(candidate.entry.phone),
+          services: candidate.entry.services.map((item) => ({
+            id: item.service.id,
+            name: item.service.name,
+          })),
+          requestedProfessional: candidate.entry.professional
+            ? {
+                id: candidate.entry.professional.id,
+                name: candidate.entry.professional.name,
+              }
+            : null,
+          offeredProfessional: candidate.professional,
+          dateFrom: toDateKey(candidate.entry.dateFrom),
+          dateTo: toDateKey(candidate.entry.dateTo),
+          startMinute: candidate.entry.startMinute,
+          endMinute: candidate.entry.endMinute,
+          waitingSince: candidate.entry.createdAt.toISOString(),
+          failedOfferCount: candidate.entry.failedOfferCount,
+          totalDurationMinutes: candidate.totalDurationMinutes,
+          totalPriceKurus: candidate.totalPriceKurus,
+        })),
+      });
+    }
+    return suggestions;
   }
 
-  async cancelAdmin(entryId: string, reason: string) {
+  async createSuggestionOffer(
+    identity: AdminIdentity,
+    eventId: string,
+    entryId: string,
+  ) {
+    const claimed = await this.prisma.slotRecoveryEvent.updateMany({
+      where: {
+        id: eventId,
+        branchId: identity.branchId,
+        status: { in: [SlotRecoveryStatus.PENDING, SlotRecoveryStatus.FAILED] },
+        availableAt: { lte: new Date() },
+        startAt: { gt: new Date() },
+      },
+      data: { status: SlotRecoveryStatus.PROCESSING },
+    });
+    if (claimed.count !== 1) {
+      throw new ConflictException(
+        'Bu boşluk artık teklif için kullanılamıyor. Listeyi yenileyin.',
+      );
+    }
+
+    const event = await this.prisma.slotRecoveryEvent.findUnique({
+      where: { id: eventId },
+    });
+    if (!event) throw new NotFoundException('Açılan saat bulunamadı.');
+
+    try {
+      const candidate = (await this.findCandidatesForRecoveryEvent(event)).find(
+        (item) => item.entry.id === entryId,
+      );
+      if (!candidate) {
+        throw new ConflictException(
+          'Müşterinin tercihi bu boşlukla artık eşleşmiyor.',
+        );
+      }
+      const offer = await this.offerEntry(
+        candidate.entry,
+        candidate.professional.id,
+        event.startAt,
+        identity,
+      );
+      await this.prisma.slotRecoveryEvent.update({
+        where: { id: event.id },
+        data: {
+          status: SlotRecoveryStatus.PROCESSED,
+          processedAt: new Date(),
+          lastError: null,
+        },
+      });
+      return offer;
+    } catch (error) {
+      await this.prisma.slotRecoveryEvent.updateMany({
+        where: { id: event.id, status: SlotRecoveryStatus.PROCESSING },
+        data: {
+          status: SlotRecoveryStatus.FAILED,
+          availableAt: new Date(),
+          lastError: (error instanceof Error
+            ? error.message
+            : String(error)
+          ).slice(0, 300),
+        },
+      });
+      throw error;
+    }
+  }
+
+  async cancelAdmin(identity: AdminIdentity, entryId: string, reason: string) {
     const entry = await this.prisma.waitlistEntry.findUnique({
       where: { id: entryId },
       include: ENTRY_INCLUDE,
     });
-    if (!entry)
+    if (!entry || entry.branchId !== identity.branchId)
       throw new NotFoundException('Bekleme listesi kaydı bulunamadı.');
     await this.prisma.$transaction(async (transaction) => {
       await transaction.waitlistOffer.updateMany({
@@ -550,6 +787,8 @@ export class WaitlistService {
         entityId: entry.id,
         action: 'WAITLIST_CANCELLED_BY_ADMIN',
         actorType: AuditActorType.ADMIN,
+        adminUserId: identity.userId,
+        actorLabel: identity.displayName,
         reason,
       });
       await transaction.adminRealtimeEvent.create({
@@ -568,11 +807,15 @@ export class WaitlistService {
     const ids = await this.prisma.$transaction(async (transaction) => {
       const rows = await transaction.$queryRaw<Array<{ id: string }>>(
         Prisma.sql`
-          SELECT "id"
-          FROM "slot_recovery_events"
-          WHERE "status" IN ('PENDING', 'FAILED')
-            AND "available_at" <= NOW()
-          ORDER BY "created_at" ASC
+          SELECT recovery."id"
+          FROM "slot_recovery_events" AS recovery
+          INNER JOIN "branch_booking_policies" AS policy
+            ON policy."branch_id" = recovery."branch_id"
+          WHERE recovery."status" IN ('PENDING', 'FAILED')
+            AND policy."waitlist_enabled" = TRUE
+            AND policy."automatic_waitlist_offers" = TRUE
+            AND recovery."available_at" <= NOW()
+          ORDER BY recovery."created_at" ASC
           LIMIT 10
           FOR UPDATE SKIP LOCKED
         `,
@@ -661,6 +904,21 @@ export class WaitlistService {
     ].join('; ');
   }
 
+  offerSessionCookie(token: string, expiresAt: Date) {
+    const maxAge = Math.max(
+      1,
+      Math.floor((expiresAt.getTime() - Date.now()) / 1000),
+    );
+    return [
+      `${this.offerCookieName}=${token}`,
+      'Path=/api/waitlist/offers',
+      'HttpOnly',
+      'SameSite=Strict',
+      `Max-Age=${maxAge}`,
+      ...(process.env.NODE_ENV === 'production' ? ['Secure'] : []),
+    ].join('; ');
+  }
+
   clearCookie() {
     return [
       `${this.cookieName}=`,
@@ -673,12 +931,20 @@ export class WaitlistService {
   }
 
   readCookie(header: string | undefined) {
+    return this.readNamedCookie(header, this.cookieName);
+  }
+
+  readOfferCookie(header: string | undefined) {
+    return this.readNamedCookie(header, this.offerCookieName);
+  }
+
+  private readNamedCookie(header: string | undefined, name: string) {
     if (!header) return undefined;
     return header
       .split(';')
       .map((part) => part.trim())
-      .find((part) => part.startsWith(`${this.cookieName}=`))
-      ?.slice(this.cookieName.length + 1);
+      .find((part) => part.startsWith(`${name}=`))
+      ?.slice(name.length + 1);
   }
 
   private async processRecoveryEvent(id: string) {
@@ -687,64 +953,15 @@ export class WaitlistService {
     });
     if (!event || event.status !== SlotRecoveryStatus.PROCESSING) return;
     try {
-      const date = new Date(`${toDateKey(event.startAt)}T00:00:00.000Z`);
-      const startMinute = minuteOfDay(event.startAt);
-      const capacityMinutes = Math.round(
-        (event.endAt.getTime() - event.startAt.getTime()) / 60_000,
-      );
-      const entries = await this.prisma.waitlistEntry.findMany({
-        where: {
-          branchId: event.branchId,
-          status: WaitlistEntryStatus.ACTIVE,
-          dateFrom: { lte: date },
-          dateTo: { gte: date },
-          startMinute: { lte: startMinute },
-          endMinute: { gte: startMinute + 5 },
-          ...(event.professionalId
-            ? {
-                OR: [
-                  { professionalId: null },
-                  { professionalId: event.professionalId },
-                ],
-              }
-            : {}),
-          offers: {
-            none: {
-              startAt: event.startAt,
-              status: {
-                in: [WaitlistOfferStatus.EXPIRED, WaitlistOfferStatus.REVOKED],
-              },
-            },
-          },
-        },
-        include: ENTRY_INCLUDE,
-        orderBy: [
-          { failedOfferCount: 'asc' },
-          { createdAt: 'asc' },
-          { id: 'asc' },
-        ],
-      });
+      const candidates = await this.findCandidatesForRecoveryEvent(event);
       let offered = false;
-      for (const entry of entries) {
-        const professionalId = event.professionalId ?? entry.professionalId;
-        if (!professionalId) continue;
-        const selection = await this.serviceResolver
-          .resolveSelection(
-            entry.branchId,
-            professionalId,
-            entry.services.map((item) => item.serviceId),
-            'public',
-          )
-          .catch(() => null);
-        if (
-          !selection ||
-          selection.totalDurationMinutes > capacityMinutes ||
-          entry.endMinute < startMinute + selection.totalDurationMinutes
-        ) {
-          continue;
-        }
+      for (const candidate of candidates) {
         try {
-          await this.offerEntry(entry, professionalId, event.startAt);
+          await this.offerEntry(
+            candidate.entry,
+            candidate.professional.id,
+            event.startAt,
+          );
           offered = true;
           break;
         } catch (error) {
@@ -784,6 +1001,7 @@ export class WaitlistService {
     entry: EntryRecord,
     professionalId: string,
     startAt: Date,
+    actor?: Pick<AdminIdentity, 'userId' | 'displayName'>,
   ) {
     if (entry.status !== WaitlistEntryStatus.ACTIVE) {
       throw new ConflictException('Bekleme listesi kaydı aktif değil.');
@@ -856,6 +1074,7 @@ export class WaitlistService {
               startAt: created.startAt.toISOString(),
               professionalName: created.professional.name,
               expiresAt: created.expiresAt.toISOString(),
+              actionTokenEnvelope: sealActionToken(token),
             },
           },
         );
@@ -864,7 +1083,9 @@ export class WaitlistService {
           entityType: 'WAITLIST_OFFER',
           entityId: created.id,
           action: 'WAITLIST_OFFERED',
-          actorType: AuditActorType.SYSTEM,
+          actorType: actor ? AuditActorType.ADMIN : AuditActorType.SYSTEM,
+          adminUserId: actor?.userId,
+          actorLabel: actor?.displayName,
           afterData: {
             startAt: created.startAt.toISOString(),
             endAt: created.endAt.toISOString(),
@@ -888,9 +1109,138 @@ export class WaitlistService {
         startAt: offer.startAt.toISOString(),
         endAt: offer.endAt.toISOString(),
         expiresAt: offer.expiresAt.toISOString(),
+        totalDurationMinutes: offer.totalDurationMinutes,
+        totalPriceKurus: offer.totalPriceKurus,
       };
     } catch (error) {
       this.rethrowConflict(error);
+    }
+  }
+
+  private async findCandidatesForRecoveryEvent(
+    event: RecoveryEventShape,
+  ): Promise<WaitlistCandidate[]> {
+    const date = new Date(`${toDateKey(event.startAt)}T00:00:00.000Z`);
+    const startMinute = minuteOfDay(event.startAt);
+    const capacityMinutes = Math.round(
+      (event.endAt.getTime() - event.startAt.getTime()) / 60_000,
+    );
+    const entries = await this.prisma.waitlistEntry.findMany({
+      where: {
+        branchId: event.branchId,
+        status: WaitlistEntryStatus.ACTIVE,
+        dateFrom: { lte: date },
+        dateTo: { gte: date },
+        startMinute: { lte: startMinute },
+        endMinute: { gte: startMinute + 5 },
+        ...(event.professionalId
+          ? {
+              OR: [
+                { professionalId: null },
+                { professionalId: event.professionalId },
+              ],
+            }
+          : {}),
+        offers: {
+          none: {
+            startAt: event.startAt,
+            status: {
+              in: [WaitlistOfferStatus.EXPIRED, WaitlistOfferStatus.REVOKED],
+            },
+          },
+        },
+      },
+      include: ENTRY_INCLUDE,
+      orderBy: [
+        { failedOfferCount: 'asc' },
+        { createdAt: 'asc' },
+        { id: 'asc' },
+      ],
+      take: 100,
+    });
+    const professionals = await this.prisma.professional.findMany({
+      where: {
+        branchId: event.branchId,
+        isActive: true,
+        isOnlineBookable: true,
+        ...(event.professionalId ? { id: event.professionalId } : {}),
+      },
+      select: { id: true, name: true },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    });
+    const candidates: WaitlistCandidate[] = [];
+
+    for (const entry of entries) {
+      const eligibleProfessionals = professionals.filter(
+        (professional) =>
+          !entry.professionalId || entry.professionalId === professional.id,
+      );
+      for (const professional of eligibleProfessionals) {
+        const selection = await this.serviceResolver
+          .resolveSelection(
+            entry.branchId,
+            professional.id,
+            entry.services.map((item) => item.serviceId),
+            'public',
+          )
+          .catch(() => null);
+        if (
+          !selection ||
+          selection.totalDurationMinutes > capacityMinutes ||
+          entry.endMinute < startMinute + selection.totalDurationMinutes
+        ) {
+          continue;
+        }
+        const isAvailable = await this.isCandidateAvailableForRecoveryEvent(
+          event,
+          professional.id,
+          selection,
+        );
+        if (!isAvailable) continue;
+        candidates.push({
+          entry,
+          professional,
+          totalDurationMinutes: selection.totalDurationMinutes,
+          totalPriceKurus: selection.totalPriceKurus,
+        });
+        break;
+      }
+      if (candidates.length >= 50) break;
+    }
+    return candidates;
+  }
+
+  private async isCandidateAvailableForRecoveryEvent(
+    event: RecoveryEventShape,
+    professionalId: string,
+    selection: {
+      totalDurationMinutes: number;
+      services: EffectiveProfessionalService[];
+    },
+  ) {
+    const endAt = new Date(
+      event.startAt.getTime() + selection.totalDurationMinutes * 60_000,
+    );
+    const occupancySegments = this.serviceResolver.buildAbsoluteOccupancy(
+      professionalId,
+      event.startAt,
+      selection.services,
+    );
+
+    try {
+      await this.prisma.$transaction(async (transaction) => {
+        await this.schedule.assertAvailable(transaction, {
+          branchId: event.branchId,
+          professionalId,
+          startAt: event.startAt,
+          endAt,
+          occupancySegments,
+        });
+      });
+      return true;
+    } catch (error) {
+      if (error instanceof ConflictException) return false;
+      throw error;
     }
   }
 
@@ -904,12 +1254,23 @@ export class WaitlistService {
     return entry;
   }
 
+  private async requireOfferByToken(token: string | undefined) {
+    if (!token) throw this.unauthorizedOffer();
+    const offer = await this.prisma.waitlistOffer.findUnique({
+      where: { tokenHash: this.hash(token) },
+      include: OFFER_ACCESS_INCLUDE,
+    });
+    if (!offer) throw this.unauthorizedOffer();
+    return offer;
+  }
+
   private validatePreference(dto: RequestWaitlistCodeDto) {
     const from = new Date(`${dto.dateFrom}T00:00:00.000Z`);
     const to = new Date(`${dto.dateTo}T00:00:00.000Z`);
     if (
       Number.isNaN(from.getTime()) ||
       Number.isNaN(to.getTime()) ||
+      dto.dateFrom < toDateKey(new Date()) ||
       from > to ||
       to.getTime() - from.getTime() > 90 * 86_400_000
     ) {
@@ -939,10 +1300,7 @@ export class WaitlistService {
       id: entry.id,
       status: entry.status,
       fullName: entry.fullName,
-      phoneMasked: entry.phone.replace(
-        /^(\+90)(\d{3})(\d{3})(\d{2})(\d{2})$/,
-        '$1 $2 *** ** $5',
-      ),
+      phoneMasked: this.maskPhone(entry.phone),
       professional: entry.professional
         ? { id: entry.professional.id, name: entry.professional.name }
         : null,
@@ -964,6 +1322,14 @@ export class WaitlistService {
         endAt: offer.endAt.toISOString(),
         expiresAt: offer.expiresAt.toISOString(),
         acceptedAt: offer.acceptedAt?.toISOString() ?? null,
+        totalDurationMinutes: offer.totalDurationMinutes,
+        totalPriceKurus: offer.totalPriceKurus,
+        acceptedBooking: offer.acceptedBooking
+          ? {
+              publicCode: offer.acceptedBooking.publicCode,
+              status: offer.acceptedBooking.status,
+            }
+          : null,
         professional: {
           id: offer.professional.id,
           name: offer.professional.name,
@@ -971,6 +1337,37 @@ export class WaitlistService {
       })),
       createdAt: entry.createdAt.toISOString(),
       updatedAt: entry.updatedAt.toISOString(),
+    };
+  }
+
+  private maskPhone(phone: string) {
+    return phone.replace(
+      /^(\+90)(\d{3})(\d{3})(\d{2})(\d{2})$/,
+      '$1 $2 *** ** $5',
+    );
+  }
+
+  private toOfferDto(offer: OfferAccessRecord) {
+    return {
+      id: offer.id,
+      status: offer.status,
+      startAt: offer.startAt.toISOString(),
+      endAt: offer.endAt.toISOString(),
+      expiresAt: offer.expiresAt.toISOString(),
+      acceptedAt: offer.acceptedAt?.toISOString() ?? null,
+      totalDurationMinutes: offer.totalDurationMinutes,
+      totalPriceKurus: offer.totalPriceKurus,
+      professional: {
+        id: offer.professional.id,
+        name: offer.professional.name,
+      },
+      acceptedBooking: offer.acceptedBooking
+        ? {
+            publicCode: offer.acceptedBooking.publicCode,
+            status: offer.acceptedBooking.status,
+          }
+        : null,
+      entry: this.toDto(offer.waitlistEntry),
     };
   }
 
@@ -1086,6 +1483,12 @@ export class WaitlistService {
   private unauthorized() {
     return new UnauthorizedException(
       'Bekleme listesi erişim oturumu geçerli değil.',
+    );
+  }
+
+  private unauthorizedOffer() {
+    return new UnauthorizedException(
+      'Saat teklifi bağlantısı geçerli değil veya süresi dolmuş.',
     );
   }
 

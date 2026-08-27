@@ -114,7 +114,9 @@ export class BookingPolicyService {
       pendingWarningMinutes: dto.pendingWarningMinutes,
       allowLateCancellation: dto.allowLateCancellation,
       waitlistEnabled: dto.waitlistEnabled,
-      automaticWaitlistOffers: dto.automaticWaitlistOffers,
+      // Bu salonda bekleme teklifi yalnız yönetici seçimiyle gönderilir.
+      // Eski istemciler `true` yollasa bile otomatik SMS/slot tutma açılmaz.
+      automaticWaitlistOffers: false,
       reviewRequestEnabled: dto.reviewRequestEnabled,
       reviewRequestDelayMinutes: dto.reviewRequestDelayMinutes,
       reviewRequestExpiryDays: dto.reviewRequestExpiryDays,
@@ -160,7 +162,8 @@ export class BookingPolicyService {
     // `createdAt` bilinçli olarak dışarıda bırakılır. Yönetici ekranı GET
     // yanıtını olduğu gibi PUT gövdesine çevirdiği için, DTO'da tanımlı olmayan
     // her alan `forbidNonWhitelisted` doğrulamasına takılıp 400 üretir.
-    const { createdAt: _createdAt, ...rest } = policy;
+    const rest = { ...policy };
+    delete rest.createdAt;
     return {
       ...rest,
       updatedAt: policy.updatedAt.toISOString(),

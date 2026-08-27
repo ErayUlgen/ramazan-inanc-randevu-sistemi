@@ -5,6 +5,8 @@ import { StarIcon as Star } from "@phosphor-icons/react/dist/csr/Star";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../../components/ui/button";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Input } from "../../components/ui/input";
 import type {
   AdminReview,
   AdminReviewSummary,
@@ -93,73 +95,6 @@ export function ReviewsPage({ onLogout, onNavigate, role }: Props) {
       onLogout={onLogout}
       onNavigate={onNavigate}
       role={role}
-      actions={
-        <div className="review-toolbar">
-          <label>
-            Başlangıç
-            <input
-              type="date"
-              value={from}
-              onChange={(event) => setFrom(event.target.value)}
-            />
-          </label>
-          <label>
-            Bitiş
-            <input
-              type="date"
-              value={to}
-              onChange={(event) => setTo(event.target.value)}
-            />
-          </label>
-          <label>
-            Uzman
-            <select
-              value={professionalId}
-              onChange={(event) => setProfessionalId(event.target.value)}
-            >
-              <option value="">Tüm uzmanlar</option>
-              {professionalOptions.map((professional) => (
-                <option
-                  key={professional.professionalId}
-                  value={professional.professionalId}
-                >
-                  {professional.professionalName}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Puan
-            <select
-              value={rating}
-              onChange={(event) => setRating(event.target.value)}
-            >
-              <option value="">Tümü</option>
-              {[5, 4, 3, 2, 1].map((value) => (
-                <option key={value} value={value}>
-                  {value} yıldız
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="review-unread-filter">
-            <input
-              type="checkbox"
-              checked={unreadOnly}
-              onChange={(event) => setUnreadOnly(event.target.checked)}
-            />
-            Yalnız okunmayan
-          </label>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => void load()}
-            aria-label="Değerlendirmeleri yenile"
-          >
-            <RefreshCw />
-          </Button>
-        </div>
-      }
     >
       {error && (
         <AdminErrorBanner
@@ -169,55 +104,113 @@ export function ReviewsPage({ onLogout, onNavigate, role }: Props) {
           onRetry={() => void load()}
         />
       )}
-      {loading ? (
-        <div className="review-center-grid">
-          <div className="review-summary-card operation-card--skeleton" />
-          <div className="review-list-card operation-card--skeleton" />
+      <section className="service-workbench reviews-workbench" aria-label="Değerlendirmeler">
+        <div className="reviews-toolbar">
+          <div className="reviews-toolbar__filters">
+            <label className="service-field">
+              <span>Başlangıç</span>
+              <Input
+                id="reviews-filter-from"
+                name="from"
+                type="date"
+                value={from}
+                onChange={(event) => setFrom(event.target.value)}
+              />
+            </label>
+            <label className="service-field">
+              <span>Bitiş</span>
+              <Input
+                id="reviews-filter-to"
+                name="to"
+                type="date"
+                value={to}
+                onChange={(event) => setTo(event.target.value)}
+              />
+            </label>
+            <label className="service-field">
+              <span>Uzman</span>
+              <select
+                id="reviews-filter-professional"
+                name="professionalId"
+                value={professionalId}
+                onChange={(event) => setProfessionalId(event.target.value)}
+              >
+                <option value="">Tüm uzmanlar</option>
+                {professionalOptions.map((professional) => (
+                  <option
+                    key={professional.professionalId}
+                    value={professional.professionalId}
+                  >
+                    {professional.professionalName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="service-field">
+              <span>Puan</span>
+              <select
+                id="reviews-filter-rating"
+                name="rating"
+                value={rating}
+                onChange={(event) => setRating(event.target.value)}
+              >
+                <option value="">Tümü</option>
+                {[5, 4, 3, 2, 1].map((value) => (
+                  <option key={value} value={value}>
+                    {value} yıldız
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="reviews-unread-filter">
+              <Checkbox
+                checked={unreadOnly}
+                onCheckedChange={(checked) => setUnreadOnly(checked === true)}
+              />
+              <span>Yalnız okunmayan</span>
+            </label>
+          </div>
+          <button
+            type="button"
+            className="reviews-refresh"
+            onClick={() => void load()}
+            aria-label="Değerlendirmeleri yenile"
+          >
+            <RefreshCw size={18} aria-hidden="true" />
+          </button>
         </div>
-      ) : (
-        <>
-          {summary && (
-            <section
-              className="review-metrics"
-              aria-label="Değerlendirme özeti"
-            >
-              <article>
-                <span>
-                  <Star />
-                </span>
-                <small>Ortalama puan</small>
-                <strong>{summary.averageRating.toFixed(1)} / 5</strong>
-              </article>
-              <article>
-                <span>
-                  <MessageSquareText />
-                </span>
-                <small>Yanıt oranı</small>
-                <strong>%{Math.round(summary.responseRate * 100)}</strong>
-              </article>
-              <article>
-                <span>
-                  <Check />
-                </span>
-                <small>Gelen değerlendirme</small>
-                <strong>{summary.submitted}</strong>
-              </article>
-              <article>
-                <span>
-                  <MessageSquareText />
-                </span>
-                <small>Okunmamış</small>
-                <strong>{summary.unread}</strong>
-              </article>
-            </section>
-          )}
-          <div className="review-center-grid">
-            <section className="review-summary-card">
+
+        {summary && (
+          <dl className="reviews-metrics" aria-label="Değerlendirme özeti">
+            <div>
+              <dt>Ortalama puan</dt>
+              <dd>{summary.averageRating.toFixed(1)}/5</dd>
+            </div>
+            <div>
+              <dt>Yanıt oranı</dt>
+              <dd>%{Math.round(summary.responseRate * 100)}</dd>
+            </div>
+            <div>
+              <dt>Gelen değerlendirme</dt>
+              <dd>{summary.submitted}</dd>
+            </div>
+            <div>
+              <dt>Okunmamış</dt>
+              <dd>{summary.unread}</dd>
+            </div>
+          </dl>
+        )}
+
+        {loading ? (
+          <div className="admin-skeleton admin-skeleton--cards reviews-skeleton" />
+        ) : (
+          <div className="reviews-content-grid">
+            <section className="reviews-summary" aria-labelledby="reviews-distribution-title">
               <header>
                 <small>Puan dağılımı</small>
-                <h2>Ziyaret memnuniyeti</h2>
+                <strong id="reviews-distribution-title">Ziyaret memnuniyeti</strong>
               </header>
-              <div className="review-distribution">
+              <div className="reviews-distribution">
                 {(summary?.distribution ?? []).map((row) => {
                   const width = summary?.submitted
                     ? (row.count / summary.submitted) * 100
@@ -226,7 +219,7 @@ export function ReviewsPage({ onLogout, onNavigate, role }: Props) {
                     <div key={row.rating}>
                       <b>
                         {row.rating}
-                        <Star />
+                        <Star weight="fill" aria-hidden="true" />
                       </b>
                       <span>
                         <i style={{ width: `${width}%` }} />
@@ -236,33 +229,42 @@ export function ReviewsPage({ onLogout, onNavigate, role }: Props) {
                   );
                 })}
               </div>
-              <div className="review-ranking">
-                <h3>Uzman ortalamaları</h3>
+              <div className="reviews-ranking">
+                <p className="reviews-ranking__label">Uzman ortalamaları</p>
                 {(summary?.professionals ?? []).map((item) => (
                   <div key={item.professionalId}>
                     <span>{item.professionalName}</span>
-                    <strong>
-                      {item.averageRating.toFixed(1)} · {item.reviewCount}
-                    </strong>
+                    <span className="reviews-ranking__stat">
+                      <strong>
+                        <Star weight="fill" aria-hidden="true" />
+                        {item.averageRating.toFixed(1)}
+                      </strong>
+                      <small>
+                        {item.reviewCount === 0
+                          ? "Henüz değerlendirme yok"
+                          : `${item.reviewCount} değerlendirme`}
+                      </small>
+                    </span>
                   </div>
                 ))}
               </div>
             </section>
-            <section className="review-list-card">
+
+            <section className="reviews-list-panel" aria-labelledby="reviews-list-title">
               <header>
                 <small>Müşteri sesi</small>
-                <h2>Son değerlendirmeler</h2>
+                <strong id="reviews-list-title">Son değerlendirmeler</strong>
               </header>
               {!items.length ? (
-                <div className="review-empty">
-                  <MessageSquareText />
+                <div className="service-catalog-empty">
+                  <MessageSquareText size={26} weight="duotone" aria-hidden="true" />
                   <strong>Henüz değerlendirme yok</strong>
                   <p>
                     Geçmiş onaylı randevulardan gelen yanıtlar burada görünecek.
                   </p>
                 </div>
               ) : (
-                <div className="review-list">
+                <div className="reviews-list">
                   {items.map((item) => (
                     <article
                       key={item.id}
@@ -278,14 +280,16 @@ export function ReviewsPage({ onLogout, onNavigate, role }: Props) {
                         </span>
                         <b aria-label={`${item.rating} yıldız`}>
                           {item.rating}
-                          <Star fill="currentColor" />
+                          <Star weight="fill" aria-hidden="true" />
                         </b>
                       </header>
                       <p>{item.comment || "Müşteri yalnızca puan bıraktı."}</p>
                       <small>{item.services.join(" · ")}</small>
                       {role !== "PROFESSIONAL" && (
                         <footer>
-                          <input
+                          <Input
+                            name={`review-note-${item.id}`}
+                            aria-label="Ekip için iç not"
                             value={notes[item.id] ?? ""}
                             onChange={(event) =>
                               setNotes((current) => ({
@@ -332,8 +336,8 @@ export function ReviewsPage({ onLogout, onNavigate, role }: Props) {
               )}
             </section>
           </div>
-        </>
-      )}
+        )}
+      </section>
     </AdminPageFrame>
   );
 }

@@ -200,15 +200,23 @@ export class NotificationWorkerService
                 openActionToken(bookingPayload?.actionTokenEnvelope) ??
                 undefined,
             })
-        : renderWaitlistSms(
-            notification.eventType,
-            (notification.payload ?? {}) as {
+        : renderWaitlistSms(notification.eventType, {
+            ...((notification.payload ?? {}) as {
               startAt?: string;
               professionalName?: string;
               expiresAt?: string;
               reference?: string;
-            },
-          );
+              actionTokenEnvelope?: string;
+            }),
+            actionToken:
+              openActionToken(
+                (
+                  notification.payload as {
+                    actionTokenEnvelope?: string;
+                  } | null
+                )?.actionTokenEnvelope,
+              ) ?? undefined,
+          });
       const result = await this.sms.send({
         to: recipient,
         message: renderedMessage,

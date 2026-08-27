@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "frontend/src/admin/styles/adminStudio.css"
+        ],
+        "createdAt": "2026-08-24T13:49:32.776Z",
+        "reason": "Functional unread-state indicator on review cards (border-left + tint), not decorative flourish; matches the page's own unread/read filter feature and reproduces the exact pattern already shipped pre-redesign (old .review-list article.is-unread rule used the same border-left+background-tint convention)."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "frontend/src/customer-account/customerAccount.css"
+        ],
+        "createdAt": "2026-08-26T14:21:15.746Z",
+        "reason": "Left-border+subtle-background callout convention for notice/info boxes (login intro emphasis, pre-visit form INFORMATION field, post/pre-visit instructions card), not a decorative card flourish. Pre-existing from an earlier wave, matches the same sanctioned side-tab exception already granted for frontend/src/admin/styles/adminStudio.css (2026-08-24)."
+      }
+    ]
+  }
+}

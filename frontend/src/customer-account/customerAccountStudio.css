@@ -121,19 +121,19 @@
 
 .customer-account-shell .customer-account-header > nav {
   min-width: 0;
-  min-height: 46px;
+  min-height: 54px;
   justify-self: center;
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 4px;
+  padding: 5px;
   border: 1px solid rgba(17, 24, 32, 0.16);
   border-radius: 11px;
   background: #f7f9fa;
 }
 
 .customer-account-shell .customer-account-header > nav a {
-  min-height: 36px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -155,12 +155,16 @@
   height: 18px;
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .customer-account-shell .customer-account-header > nav a:hover {
     background: #e7f4ef;
     color: #06614c;
-    transform: translateY(-1px);
   }
+}
+
+.customer-account-shell .customer-account-header > nav a:active {
+  transform: scale(0.96);
+  transition-duration: var(--ri-speed-press);
 }
 
 .customer-account-shell .customer-account-header > nav a.active,
@@ -217,13 +221,18 @@
   height: 18px;
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .customer-account-shell .customer-account-new-booking:hover {
     border-color: #06614c;
     background: #06614c;
     color: #ffffff;
     transform: translateY(-1px);
   }
+}
+
+.customer-account-shell .customer-account-new-booking:active {
+  transform: scale(0.96);
+  transition-duration: var(--ri-speed-press);
 }
 
 .customer-account-shell .customer-account-user > span {
@@ -264,7 +273,8 @@
   transition:
     border-color var(--ri-speed-micro) var(--ri-ease),
     background-color var(--ri-speed-micro) var(--ri-ease),
-    color var(--ri-speed-micro) var(--ri-ease);
+    color var(--ri-speed-micro) var(--ri-ease),
+    transform var(--ri-speed-press) var(--ri-ease);
 }
 
 .customer-account-shell .customer-account-user button svg {
@@ -276,12 +286,17 @@
   display: inline;
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .customer-account-shell .customer-account-user button:hover {
     border-color: #c54035;
     background: #fce9e7;
     color: #a3312c;
   }
+}
+
+.customer-account-shell .customer-account-user button:active {
+  transform: scale(0.94);
+  transition-duration: var(--ri-speed-press);
 }
 
 .customer-account-shell .customer-account-main,
@@ -317,8 +332,10 @@
   text-decoration: none;
 }
 
-.customer-account-shell .customer-account-footer a:hover {
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .customer-account-shell .customer-account-footer a:hover {
+    text-decoration: underline;
+  }
 }
 
 .customer-account-shell .customer-mobile-nav {
@@ -521,20 +538,25 @@
   box-shadow: none;
   transition:
     background-color var(--ri-speed-card) var(--ri-ease),
-    box-shadow var(--ri-speed-card) var(--ri-ease);
+    box-shadow var(--ri-speed-card) var(--ri-ease),
+    transform var(--ri-speed-press) var(--ri-ease);
 }
 
 .customer-account-shell .customer-booking-card:last-child {
   border-bottom: 0;
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .customer-account-shell .customer-booking-card:hover {
     border-color: rgba(17, 24, 32, 0.13);
     background: #f0f8f5;
     box-shadow: inset 3px 0 0 #087158;
-    transform: none;
   }
+}
+
+.customer-account-shell .customer-booking-card:active {
+  transform: scale(0.995);
+  transition-duration: var(--ri-speed-press);
 }
 
 .customer-account-shell .customer-booking-card:focus-visible {
@@ -770,7 +792,7 @@
 
 .customer-account-shell .customer-booking-group-error button,
 .customer-account-shell .customer-booking-inline-error button {
-  min-height: 42px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -781,12 +803,18 @@
   background: #ffffff;
   color: #a3312c;
   font: 700 13px/1 var(--ri-font-body);
+  transition: transform var(--ri-speed-press) var(--ri-ease);
 }
 
 .customer-account-shell .customer-booking-group-error button:focus-visible,
 .customer-account-shell .customer-booking-inline-error button:focus-visible {
   outline: 3px solid rgba(197, 64, 53, 0.24);
   outline-offset: 2px;
+}
+
+.customer-account-shell .customer-booking-group-error button:active,
+.customer-account-shell .customer-booking-inline-error button:active {
+  transform: scale(0.96);
 }
 
 .customer-account-shell .customer-booking-inline-error {
@@ -837,15 +865,21 @@
   transition:
     border-color var(--ri-speed-micro) var(--ri-ease),
     background-color var(--ri-speed-micro) var(--ri-ease),
-    color var(--ri-speed-micro) var(--ri-ease);
+    color var(--ri-speed-micro) var(--ri-ease),
+    transform var(--ri-speed-press) var(--ri-ease);
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .customer-account-shell .customer-history-more:hover:not(:disabled) {
     border-color: #087158;
     background: #e7f4ef;
     color: #06614c;
   }
+}
+
+.customer-account-shell .customer-history-more:active:not(:disabled) {
+  transform: scale(0.96);
+  transition-duration: var(--ri-speed-press);
 }
 
 .customer-account-shell .customer-history-more:focus-visible {
@@ -985,7 +1019,7 @@
 }
 
 .customer-account-shell .customer-profile-load-error button {
-  min-height: 42px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -996,6 +1030,11 @@
   background: #ffffff;
   color: #a3312c;
   font: 700 13px/1 var(--ri-font-body);
+  transition: transform var(--ri-speed-press) var(--ri-ease);
+}
+
+.customer-account-shell .customer-profile-load-error button:active {
+  transform: scale(0.96);
 }
 
 .customer-account-shell .customer-profile-fields.customer-profile-sections {
@@ -1062,7 +1101,7 @@
   gap: 16px;
 }
 
-.customer-account-shell .customer-profile-form-grid > label,
+.customer-account-shell .customer-profile-form-grid > .customer-field,
 .customer-account-shell .customer-profile-field {
   min-width: 0;
   display: grid;
@@ -1074,25 +1113,22 @@
   grid-column: 1 / -1;
 }
 
-.customer-account-shell .customer-profile-fields label {
+.customer-account-shell .customer-profile-fields [data-slot="label"] {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
   color: #293642;
   font-size: 14px;
   font-weight: 700;
 }
 
-.customer-account-shell .customer-profile-fields label > span {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.customer-account-shell .customer-profile-fields label small {
+.customer-account-shell .customer-profile-fields [data-slot="label"] small {
   color: var(--ri-muted);
   font-size: 12px;
   font-weight: 650;
 }
 
-.customer-account-shell .customer-profile-fields input {
+.customer-account-shell .customer-profile-fields [data-slot="input"] {
   width: 100%;
   min-height: 46px;
   padding: 0 13px;
@@ -1103,14 +1139,14 @@
   font: 650 14px/1 var(--ri-font-body);
 }
 
-.customer-account-shell .customer-profile-fields input:focus-visible {
+.customer-account-shell .customer-profile-fields [data-slot="input"]:focus-visible {
   border-color: #087158;
   outline: 3px solid rgba(8, 113, 88, 0.2);
   outline-offset: 0;
   box-shadow: none;
 }
 
-.customer-account-shell .customer-profile-fields input:disabled {
+.customer-account-shell .customer-profile-fields [data-slot="input"]:disabled {
   cursor: wait;
   background: #eef1f3;
   color: #62717e;
@@ -1148,7 +1184,9 @@
 }
 
 .customer-account-shell .customer-readonly-field small {
-  color: #62717e;
+  /* #62717e bu #eef1f3 zeminde 4.43:1 veriyordu; WCAG AA 4.5:1 ister.
+     #52616d aynı zeminde 5.63:1 üretir ve dosyada zaten kullanılan bir renk. */
+  color: #52616d;
   font-size: 12px;
   font-weight: 650;
 }
@@ -1185,7 +1223,12 @@
   cursor: pointer;
   transition:
     border-color var(--ri-speed-micro) var(--ri-ease),
-    background-color var(--ri-speed-micro) var(--ri-ease);
+    background-color var(--ri-speed-micro) var(--ri-ease),
+    transform var(--ri-speed-press) var(--ri-ease);
+}
+
+.customer-account-shell .customer-notification-toggle:active > span {
+  transform: scale(0.99);
 }
 
 .customer-account-shell .customer-notification-toggle > span > svg {
@@ -1474,6 +1517,14 @@
     font: 700 12px/1.15 var(--ri-font-body);
     text-align: center;
     text-decoration: none;
+    transition: background-color var(--ri-speed-micro) var(--ri-ease),
+      color var(--ri-speed-micro) var(--ri-ease),
+      transform var(--ri-speed-press) var(--ri-ease);
+  }
+
+  .customer-account-shell .customer-mobile-nav a:active {
+    transform: scale(0.94);
+    transition-duration: var(--ri-speed-press);
   }
 
   .customer-account-shell .customer-mobile-nav a svg {

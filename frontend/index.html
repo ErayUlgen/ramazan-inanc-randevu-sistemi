@@ -11,6 +11,21 @@
       sizes="64x64"
       href="/brand/ramazan-inanc-favicon.png"
     />
+    <!--
+      Ana rezervasyon ekranındaki kahraman videosunun poster'ı (5,9 KB).
+      Bu bir React SPA olduğu için <video poster> yalnız istemci tarafında,
+      JS mount olduktan sonra DOM'a giriyor; tarayıcının önyükleme
+      tarayıcısı onu ilk belgede göremiyordu ve LCP'de ~2,1 saniyelik "load
+      delay" üretiyordu (12.08.2026 doğrulamasında ölçüldü). Diğer
+      rotalarda (admin, müşteri hesabı) gösterilmese de 5,9 KB'lık maliyeti
+      bu kazanca değer; koşullu önyükleme statik index.html'de mümkün değil.
+    -->
+    <link
+      rel="preload"
+      as="image"
+      href="/media/ramazan-inanc-studio-poster.jpg"
+      fetchpriority="high"
+    />
     <meta name="description" content="Ramazan İnanç Hair Art Studio için premium online randevu deneyimi." />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Ramazan İnanç Hair Art Studio" />

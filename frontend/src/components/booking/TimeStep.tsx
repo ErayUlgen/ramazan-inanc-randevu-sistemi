@@ -116,6 +116,8 @@ export function TimeStep({ flow }: { flow: BookingFlow }) {
             </strong>
           </span>
           <input
+            id="booking-date"
+            name="date"
             type="date"
             min={format(today, "yyyy-MM-dd")}
             max={format(maximumDate, "yyyy-MM-dd")}

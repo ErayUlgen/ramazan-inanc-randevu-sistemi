@@ -39,7 +39,21 @@ import {
 } from "react-router-dom";
 import { StudioWordmark } from "../components/brand/StudioWordmark";
 import { AnimatedLivingQRCode } from "../components/booking/AnimatedLivingQRCode";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Textarea } from "../components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -126,6 +140,14 @@ const STATUS_COPY: Record<
     message:
       "Talebiniz randevu saatinden önce yanıtlanamadığı için süresi doldu.",
   },
+};
+
+const ratingLabels: Record<number, string> = {
+  1: "Beklentimin altındaydı",
+  2: "Daha iyi olabilirdi",
+  3: "Memnun kaldım",
+  4: "Çok memnun kaldım",
+  5: "Harikaydı",
 };
 
 function bookingPresentation(
@@ -273,7 +295,11 @@ function CustomerLogin({
   return (
     <div className="customer-login-shell">
       <header className="customer-login-header">
-        <Link to="/" aria-label="Randevu sayfasına dön">
+        {/* aria-label bilinçli olarak yok: erişilebilir ad görünen metinden
+            gelir (bkz. BrandHeader.tsx — sabit aria-label, marka adının CSS
+            ile büyük harfe çevrilmesiyle "HAİR" / "Hair" Türkçe nokta'lı İ
+            yüzünden ayrışıyordu). */}
+        <Link to="/">
           <StudioWordmark />
         </Link>
         <Link to="/">
@@ -306,20 +332,23 @@ function CustomerLogin({
           </p>
           {!challengeId ? (
             <form onSubmit={sendCode} className="customer-auth-form">
-              <label>
-                <span>Cep telefonu</span>
+              <div className="customer-field">
+                <Label htmlFor="customer-login-phone">Cep telefonu</Label>
                 <div className="customer-phone-field">
-                  <b>+90</b>
-                  <input
+                  <span className="customer-phone-field__prefix">+90</span>
+                  <Input
+                    id="customer-login-phone"
+                    name="phone"
                     autoFocus
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
                     placeholder="5xx xxx xx xx"
                     inputMode="tel"
                     autoComplete="tel"
+                    aria-invalid={Boolean(error)}
                   />
                 </div>
-              </label>
+              </div>
               {error && <AccountError message={error} />}
               <Button disabled={busy} type="submit">
                 {busy ? <LoaderCircle className="is-spinning" /> : <Phone />}
@@ -335,9 +364,11 @@ function CustomerLogin({
                   <small>{maskPhone(phone)}</small>
                 </span>
               </div>
-              <label>
-                <span>6 haneli kod</span>
-                <input
+              <div className="customer-field">
+                <Label htmlFor="customer-login-otp">6 haneli kod</Label>
+                <Input
+                  id="customer-login-otp"
+                  name="otp"
                   className="customer-code-input"
                   autoFocus
                   value={code}
@@ -347,8 +378,9 @@ function CustomerLogin({
                   placeholder="••••••"
                   inputMode="numeric"
                   autoComplete="one-time-code"
+                  aria-invalid={Boolean(error)}
                 />
-              </label>
+              </div>
               {developmentCode && (
                 <p className="customer-dev-code">
                   Geliştirme kodu <strong>{developmentCode}</strong>
@@ -965,9 +997,11 @@ function CustomerProfilePage({
               <UserRound />
             </header>
             <div className="customer-profile-form-grid">
-              <label>
-                <span>Ad soyad</span>
-                <input
+              <div className="customer-field">
+                <Label htmlFor="customer-profile-name">Ad soyad</Label>
+                <Input
+                  id="customer-profile-name"
+                  name="fullName"
                   value={profile.fullName}
                   onChange={(event) =>
                     editProfile({ fullName: event.target.value })
@@ -978,12 +1012,14 @@ function CustomerProfilePage({
                   disabled={profileLoading}
                   required
                 />
-              </label>
-              <label>
-                <span>
+              </div>
+              <div className="customer-field">
+                <Label htmlFor="customer-profile-email">
                   E-posta <small>isteğe bağlı</small>
-                </span>
-                <input
+                </Label>
+                <Input
+                  id="customer-profile-email"
+                  name="email"
                   type="email"
                   value={profile.email ?? ""}
                   onChange={(event) =>
@@ -993,7 +1029,7 @@ function CustomerProfilePage({
                   autoComplete="email"
                   disabled={profileLoading}
                 />
-              </label>
+              </div>
               <div className="customer-profile-field">
                 <span className="customer-profile-label">
                   Doğrulanmış telefon
@@ -1113,7 +1149,7 @@ function CustomerBookingPage() {
     return () => window.clearTimeout(timer);
   }, [booking, clock]);
 
-  if (loading) return <CustomerDashboardSkeleton />;
+  if (loading) return <CustomerBookingDetailSkeleton />;
   if (!booking) {
     return (
       <section className="customer-not-found">
@@ -1530,28 +1566,43 @@ function CustomerReviewPanel({ booking }: { booking: CustomerBookingDetail }) {
         <span>Değerlendirilen uzman</span>
         <strong>{review?.professional.name}</strong>
       </p>
-      <div className="customer-review-stars is-editable">
-        {[1, 2, 3, 4, 5].map((value) => (
-          <button
-            type="button"
-            key={value}
-            className={value <= rating ? "is-active" : ""}
-            onClick={() => setRating(value)}
-            aria-label={`${value} yıldız`}
-          >
-            <Star fill={value <= rating ? "currentColor" : "none"} />
-          </button>
-        ))}
-      </div>
-      <label>
-        Kısa yorum <span>İsteğe bağlı</span>
-        <textarea
+      <fieldset className="public-rating">
+        <legend>Puanın</legend>
+        <div className="public-rating__options">
+          {[1, 2, 3, 4, 5].map((value) => (
+            <label
+              key={value}
+              className={`public-rating__option ${value <= rating ? "is-active" : ""}`}
+            >
+              <input
+                className="ri-sr-only"
+                type="radio"
+                name="customer-review-rating"
+                value={value}
+                checked={rating === value}
+                onChange={() => setRating(value)}
+                aria-label={`${value} yıldız`}
+              />
+              <Star weight={value <= rating ? "fill" : "regular"} />
+            </label>
+          ))}
+        </div>
+        <p className="public-rating__meaning" aria-live="polite">
+          {rating ? ratingLabels[rating] : "Bir puan seç"}
+        </p>
+      </fieldset>
+      <div className="public-review-comment">
+        <label htmlFor="customer-review-comment">Kısa yorum</label>
+        <span>İsteğe bağlı</span>
+        <Textarea
+          id="customer-review-comment"
+          name="comment"
           maxLength={600}
           value={comment}
           onChange={(event) => setComment(event.target.value)}
           placeholder="Hizmet ve salon deneyimin…"
         />
-      </label>
+      </div>
       {error && <AccountError message={error} />}
       <Button
         disabled={busy || !rating}
@@ -1648,9 +1699,11 @@ function CreateSeriesDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="customer-series-fields">
-          <label>
+          <label htmlFor="customer-series-frequency">
             Sıklık
             <select
+              id="customer-series-frequency"
+              name="frequency"
               value={frequency}
               onChange={(event) =>
                 setFrequency(event.target.value as BookingSeriesFrequency)
@@ -1662,9 +1715,11 @@ function CreateSeriesDialog({
               <option value="MONTHLY">Her ay</option>
             </select>
           </label>
-          <label>
+          <label htmlFor="customer-series-start-date">
             İlk yeni tarih
             <input
+              id="customer-series-start-date"
+              name="startDate"
               type="date"
               value={startDate}
               onChange={(event) => {
@@ -1673,9 +1728,11 @@ function CreateSeriesDialog({
               }}
             />
           </label>
-          <label>
+          <label htmlFor="customer-series-count">
             Randevu sayısı
             <input
+              id="customer-series-count"
+              name="occurrenceCount"
               type="number"
               min={2}
               max={12}
@@ -1686,9 +1743,15 @@ function CreateSeriesDialog({
               }}
             />
           </label>
-          <label>
+          <label htmlFor="customer-series-time">
             Saat
-            <input type="time" value={startTime} disabled />
+            <input
+              id="customer-series-time"
+              name="startTime"
+              type="time"
+              value={startTime}
+              disabled
+            />
           </label>
         </div>
         {preview && (
@@ -1771,7 +1834,23 @@ function SeriesOverview({
   > | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const occurrenceIndex = booking.occurrenceIndex;
+
+  const cancelSeries = () => {
+    if (!series || occurrenceIndex == null) return;
+    setBusy(true);
+    void cancelCustomerBookingSeries(series.id, occurrenceIndex)
+      .then(() => {
+        setConfirmCancelOpen(false);
+        setOpen(false);
+        onUpdated();
+      })
+      .catch((reason: unknown) =>
+        setError(friendlyError(reason, "Seri iptal edilemedi.")),
+      )
+      .finally(() => setBusy(false));
+  };
 
   const load = async () => {
     if (!booking.seriesId) return;
@@ -1836,25 +1915,8 @@ function SeriesOverview({
             {occurrenceIndex != null && (
               <Button
                 variant="destructive"
-                onClick={() => {
-                  if (
-                    !series ||
-                    !window.confirm(
-                      "Bu randevu ve serideki sonraki aktif randevular iptal edilsin mi?",
-                    )
-                  )
-                    return;
-                  setBusy(true);
-                  void cancelCustomerBookingSeries(series.id, occurrenceIndex)
-                    .then(() => {
-                      setOpen(false);
-                      onUpdated();
-                    })
-                    .catch((reason: unknown) =>
-                      setError(friendlyError(reason, "Seri iptal edilemedi.")),
-                    )
-                    .finally(() => setBusy(false));
-                }}
+                disabled={!series}
+                onClick={() => setConfirmCancelOpen(true)}
               >
                 Bu ve sonrakileri iptal et
               </Button>
@@ -1862,6 +1924,35 @@ function SeriesOverview({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AlertDialog
+        open={confirmCancelOpen}
+        onOpenChange={(next) => !busy && setConfirmCancelOpen(next)}
+      >
+        <AlertDialogContent className="customer-confirm-dialog">
+          <AlertDialogHeader>
+            <AlertDialogMedia>
+              <XCircle size={22} weight="duotone" />
+            </AlertDialogMedia>
+            <AlertDialogTitle>
+              Bu ve sonraki randevular iptal edilsin mi?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu randevu ve serideki sonraki aktif randevular hemen iptal
+              edilir. Bu işlem geri alınamaz.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>Vazgeç</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={busy}
+              onClick={cancelSeries}
+            >
+              {busy ? "İptal ediliyor…" : "Bu ve sonrakileri iptal et"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
@@ -1911,15 +2002,17 @@ function CancelBookingDialog({
             randevun iptal edilecek.
           </DialogDescription>
         </DialogHeader>
-        <label>
-          <span>İptal nedeni</span>
-          <textarea
+        <div className="customer-field">
+          <Label htmlFor="customer-cancel-reason">İptal nedeni</Label>
+          <Textarea
+            id="customer-cancel-reason"
+            name="reason"
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             placeholder="Kısaca nedenini yazabilirsin"
             maxLength={300}
           />
-        </label>
+        </div>
         {error && <AccountError message={error} />}
         <DialogFooter>
           <Button
@@ -2031,18 +2124,22 @@ function ChangeBookingDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="customer-change-grid">
-          <label>
+          <label htmlFor="customer-change-date">
             <span>Tarih</span>
             <input
+              id="customer-change-date"
+              name="date"
               type="date"
               min={new Date().toISOString().slice(0, 10)}
               value={date}
               onChange={(event) => setDate(event.target.value)}
             />
           </label>
-          <label>
+          <label htmlFor="customer-change-professional">
             <span>Uzman</span>
             <select
+              id="customer-change-professional"
+              name="professionalId"
               value={professionalId}
               onChange={(event) => {
                 setProfessionalId(event.target.value);
@@ -2078,17 +2175,19 @@ function ChangeBookingDialog({
             <p>Bu uzman için uygun saat bulunmuyor.</p>
           )}
         </div>
-        <label>
-          <span>
+        <div className="customer-field">
+          <Label htmlFor="customer-change-reason">
             Not <small>isteğe bağlı</small>
-          </span>
-          <textarea
+          </Label>
+          <Textarea
+            id="customer-change-reason"
+            name="reason"
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             placeholder="Değişiklik nedenini ekleyebilirsin"
             maxLength={300}
           />
-        </label>
+        </div>
         {error && <AccountError message={error} />}
         <DialogFooter>
           <Button
@@ -2148,15 +2247,25 @@ function AccountRouteLoader() {
   );
 }
 
-function CustomerDashboardSkeleton() {
+function CustomerBookingDetailSkeleton() {
   return (
     <div
-      className="customer-dashboard-skeleton"
-      aria-label="Randevular yükleniyor"
+      className="customer-booking-detail-skeleton"
+      aria-label="Randevu bilgisi yükleniyor"
     >
-      <i />
-      <i />
-      <i />
+      <i className="customer-booking-detail-skeleton__hero" />
+      <div className="customer-detail-layout">
+        <div className="customer-detail-main">
+          <i style={{ minHeight: 200 }} />
+          <i style={{ minHeight: 140 }} />
+          <i style={{ minHeight: 220 }} />
+        </div>
+        <div className="customer-detail-side">
+          <i style={{ minHeight: 300 }} />
+          <i style={{ minHeight: 140 }} />
+          <i style={{ minHeight: 220 }} />
+        </div>
+      </div>
     </div>
   );
 }

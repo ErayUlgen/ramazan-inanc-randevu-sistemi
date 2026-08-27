@@ -73,7 +73,7 @@ const NAVIGATION_GROUPS: NavigationGroup[] = [
       },
       {
         id: "requests" as const,
-        label: "Talepler",
+        label: "Değişiklikler",
         icon: ClipboardTextIcon,
       },
       {
@@ -264,7 +264,11 @@ export function AdminHeader({
                 side="left"
               >
                 <SheetHeader className="admin-studio-mobile-sheet__header">
-                  <a href="/" aria-label="Müşteri randevu sayfasına dön">
+                  {/* aria-label bilinçli olarak yok: erişilebilir ad görünen
+                      metinden gelir (bkz. BrandHeader.tsx — sabit aria-label,
+                      marka adının CSS ile büyük harfe çevrilmesiyle "HAİR" /
+                      "Hair" Türkçe nokta'lı İ yüzünden ayrışıyordu). */}
+                  <a href="/">
                     <StudioWordmark />
                   </a>
                   <SheetTitle>Salon yönetimi</SheetTitle>
@@ -280,6 +284,13 @@ export function AdminHeader({
             </Sheet>
           )}
 
+          {/* Diğer marka bağlantılarının aksine burada aria-label bilinçli
+              OLARAK VAR: .admin-studio-mobile-brand bu dar üst barda
+              .studio-wordmark__copy'yi (yani "Ramazan İnanç" / "Hair Art
+              Studio" metnini) display:none ile gizliyor, geriye yalnız
+              alt="" olan dekoratif logo kalıyor — yani görünen metin hiç
+              yok, ad görünen metinden türetilemez. Lighthouse'un
+              link-name denetimi bunu canlı olarak yakaladı. */}
           <a
             className="admin-studio-mobile-brand"
             href="/"

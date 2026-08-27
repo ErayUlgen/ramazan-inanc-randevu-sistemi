@@ -1,29 +1,40 @@
+import { ArrowClockwiseIcon as ArrowClockwise } from "@phosphor-icons/react/dist/csr/ArrowClockwise";
 import { CalendarDotsIcon as CalendarClock } from "@phosphor-icons/react/dist/csr/CalendarDots";
 import { ClockIcon as Clock3 } from "@phosphor-icons/react/dist/csr/Clock";
 import { ListPlusIcon as ListPlus } from "@phosphor-icons/react/dist/csr/ListPlus";
 import { UserCheckIcon as UserRoundCheck } from "@phosphor-icons/react/dist/csr/UserCheck";
+import { UsersThreeIcon as UsersThree } from "@phosphor-icons/react/dist/csr/UsersThree";
 import { XIcon as X } from "@phosphor-icons/react/dist/csr/X";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../../components/ui/alert-dialog";
 import { Button } from "../../components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog";
-import { Label } from "../../components/ui/label";
+import { Textarea } from "../../components/ui/textarea";
 import type {
-  AdminManagedProfessional,
   AdminWaitlistEntry,
+  AdminWaitlistSuggestion,
 } from "../admin.types";
 import {
   cancelAdminWaitlistEntry,
-  createAdminWaitlistOffer,
-  getAdminProfessionals,
+  createAdminWaitlistSuggestionOffer,
   getAdminWaitlist,
+  getAdminWaitlistSuggestions,
 } from "../api/adminApi";
 import type { AdminSection } from "../components/AdminHeader";
 import { AdminErrorBanner } from "../components/AdminErrorBanner";
@@ -35,33 +46,37 @@ type Props = {
   onNavigate: (section: AdminSection) => void;
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  ACTIVE: "Aktif",
+  OFFERED: "Teklif verilen",
+  FULFILLED: "Randevuya dönüşen",
+  EXPIRED: "Süresi dolan",
+  CANCELLED: "İptal edilen",
+};
+
 export function WaitlistPage({ branchId, onLogout, onNavigate }: Props) {
   const [status, setStatus] = useState("ACTIVE");
   const [items, setItems] = useState<AdminWaitlistEntry[]>([]);
-  const [professionals, setProfessionals] = useState<
-    AdminManagedProfessional[]
-  >([]);
+  const [suggestions, setSuggestions] = useState<AdminWaitlistSuggestion[]>([]);
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<AdminWaitlistSuggestion | null>(null);
+  const [submittingEntryId, setSubmittingEntryId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [offerEntry, setOfferEntry] = useState<AdminWaitlistEntry | null>(null);
-  const [professionalId, setProfessionalId] = useState("");
-  const [date, setDate] = useState(today());
-  const [time, setTime] = useState("10:00");
-  const [submitting, setSubmitting] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState<AdminWaitlistEntry | null>(
+    null,
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const [entries, experts] = await Promise.all([
+      const [entries, openedSlots] = await Promise.all([
         getAdminWaitlist(branchId, status),
-        getAdminProfessionals(branchId),
+        getAdminWaitlistSuggestions(),
       ]);
       setItems(entries);
-      setProfessionals(experts.filter((item) => item.isActive));
-      setProfessionalId(
-        (current) => current || experts.find((item) => item.isActive)?.id || "",
-      );
+      setSuggestions(openedSlots);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -77,26 +92,27 @@ export function WaitlistPage({ branchId, onLogout, onNavigate }: Props) {
     void load();
   }, [load]);
 
-  const createOffer = async () => {
-    if (!offerEntry || !professionalId) return;
-    setSubmitting(true);
+  const createOffer = async (entryId: string) => {
+    if (!selectedSuggestion) return;
+    setSubmittingEntryId(entryId);
+    setError("");
     try {
-      await createAdminWaitlistOffer(offerEntry.id, {
-        professionalId,
-        date,
-        startTime: time,
-      });
-      toast.success("Müşteriye süreli saat teklifi oluşturuldu.");
-      setOfferEntry(null);
+      await createAdminWaitlistSuggestionOffer(selectedSuggestion.id, entryId);
+      toast.success(
+        `Saat ${selectedSuggestion.offerTtlMinutes} dakika ayrıldı. Güvenli kabul bağlantısı müşteriye SMS ile gönderildi.`,
+      );
+      setSelectedSuggestion(null);
       await load();
     } catch (requestError) {
-      setError(
+      const message =
         requestError instanceof Error
           ? requestError.message
-          : "Teklif oluşturulamadı.",
-      );
+          : "Teklif oluşturulamadı.";
+      setError(message);
+      toast.error(message);
+      await load();
     } finally {
-      setSubmitting(false);
+      setSubmittingEntryId("");
     }
   };
 
@@ -105,23 +121,9 @@ export function WaitlistPage({ branchId, onLogout, onNavigate }: Props) {
       section="waitlist"
       eyebrow="Kapasite geri kazanımı"
       title="Bekleme listesi"
-      description="Boşalan saatleri tercihlerle eşleşen müşterilere kontrollü biçimde teklif et."
+      description="Boşalan saati gör, uygun müşteriyi seç; SMS yalnız sen teklif verdiğinde gitsin."
       onLogout={onLogout}
       onNavigate={onNavigate}
-      actions={
-        <select
-          className="admin-filter-select"
-          value={status}
-          onChange={(event) => setStatus(event.target.value)}
-          aria-label="Bekleme listesi durumu"
-        >
-          <option value="ACTIVE">Aktif</option>
-          <option value="OFFERED">Teklif verilen</option>
-          <option value="FULFILLED">Randevuya dönüşen</option>
-          <option value="EXPIRED">Süresi dolan</option>
-          <option value="CANCELLED">İptal edilen</option>
-        </select>
-      }
     >
       {error && (
         <AdminErrorBanner
@@ -132,182 +134,432 @@ export function WaitlistPage({ branchId, onLogout, onNavigate }: Props) {
           retryLabel="Listeyi yenile"
         />
       )}
-      {loading ? (
-        <div className="operation-list">
-          <div className="operation-card operation-card--skeleton" />
-          <div className="operation-card operation-card--skeleton" />
-        </div>
-      ) : items.length ? (
-        <div className="operation-list">
-          {items.map((entry) => (
-            <article className="operation-card waitlist-card" key={entry.id}>
-              <header>
-                <span className="operation-icon">
-                  <ListPlus />
-                </span>
-                <span>
-                  <small>{entry.phoneMasked}</small>
-                  <h2>{entry.fullName}</h2>
-                  <p>
-                    {entry.services.map((service) => service.name).join(" · ")}
-                  </p>
-                </span>
-                <b
-                  className={`operation-status operation-status--${entry.status.toLowerCase()}`}
-                >
-                  {entry.status}
-                </b>
-              </header>
-              <div className="waitlist-preferences">
-                <span>
-                  <CalendarClock />
-                  <small>Tarih</small>
-                  <strong>
-                    {entry.dateFrom === entry.dateTo
-                      ? formatDateKey(entry.dateFrom)
-                      : `${formatDateKey(entry.dateFrom)} – ${formatDateKey(entry.dateTo)}`}
-                  </strong>
-                </span>
-                <span>
-                  <Clock3 />
-                  <small>Saat aralığı</small>
-                  <strong>
-                    {minuteLabel(entry.startMinute)}–
-                    {minuteLabel(entry.endMinute)}
-                  </strong>
-                </span>
-                <span>
-                  <UserRoundCheck />
-                  <small>Uzman</small>
-                  <strong>
-                    {entry.professional?.name ?? "İlk müsait uzman"}
-                  </strong>
-                </span>
-              </div>
-              {entry.offers[0] && (
-                <p className="operation-note">
-                  <strong>Son teklif</strong>
-                  {formatDateTime(entry.offers[0].startAt)} ·{" "}
-                  {entry.offers[0].professional.name} · {entry.offers[0].status}
-                </p>
-              )}
-              <footer>
-                <span>
-                  {entry.failedOfferCount
-                    ? `${entry.failedOfferCount} süresi dolan teklif`
-                    : "Henüz teklif yok"}
-                </span>
-                {["ACTIVE", "OFFERED"].includes(entry.status) && (
-                  <div>
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        void cancelAdminWaitlistEntry(
-                          entry.id,
-                          "Yönetici tarafından kapatıldı",
-                        ).then(() => {
-                          toast.success("Bekleme kaydı kapatıldı.");
-                          void load();
-                        })
-                      }
-                    >
-                      <X /> Kaydı kapat
-                    </Button>
-                    {entry.status === "ACTIVE" && (
-                      <Button onClick={() => setOfferEntry(entry)}>
-                        <CalendarClock /> Manuel teklif
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </footer>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <div className="admin-empty-state">
-          <span>
-            <ListPlus />
+
+      <section className="waitlist-openings" aria-labelledby="opened-slots-title">
+        <header className="waitlist-openings__header">
+          <span className="waitlist-openings__mark" aria-hidden="true">
+            <CalendarClock weight="duotone" />
           </span>
-          <strong>Bu durumda kayıt yok</strong>
-          <p>Uygun saat bulamayan doğrulanmış müşteriler burada görünür.</p>
-        </div>
-      )}
-      <Dialog
-        open={Boolean(offerEntry)}
-        onOpenChange={(open) => !open && setOfferEntry(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Süreli saat teklifi</DialogTitle>
-            <DialogDescription>
-              Slot teklif süresince bloke edilir; müşteri kabul ederse randevu
-              talebine dönüşür.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="dialog-form-grid">
-            <Label htmlFor="offer-professional">Uzman</Label>
-            <select
-              id="offer-professional"
-              value={professionalId}
-              onChange={(event) => setProfessionalId(event.target.value)}
-            >
-              {professionals.map((item) => (
-                <option value={item.id} key={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-            <Label htmlFor="offer-date">Tarih</Label>
-            <input
-              id="offer-date"
-              type="date"
-              min={today()}
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
-            />
-            <Label htmlFor="offer-time">Başlangıç</Label>
-            <input
-              id="offer-time"
-              type="time"
-              value={time}
-              onChange={(event) => setTime(event.target.value)}
-            />
+          <span>
+            <small>Teklif merkezi</small>
+            <h2 id="opened-slots-title">Açılan saatler</h2>
+            <p>
+              İptal veya değişiklik sonrası açılan gerçek saatler. Sistem kendi
+              kendine müşteriye mesaj göndermez.
+            </p>
+          </span>
+          <Button variant="outline" onClick={() => void load()} disabled={loading}>
+            <ArrowClockwise /> Yenile
+          </Button>
+        </header>
+
+        {loading ? (
+          <div className="admin-skeleton admin-skeleton--cards" />
+        ) : suggestions.length ? (
+          <div className="waitlist-opening-list">
+            {suggestions.map((suggestion) => (
+              <article className="waitlist-opening-card" key={suggestion.id}>
+                <time dateTime={suggestion.startAt}>
+                  <strong>{formatTime(suggestion.startAt)}</strong>
+                  <span>{formatDate(suggestion.startAt)}</span>
+                </time>
+                <span className="waitlist-opening-card__detail">
+                  <small>Boşalan saat</small>
+                  <strong>
+                    {suggestion.professional?.name ?? "Uygun uzman seçilecek"}
+                  </strong>
+                  <span>
+                    {formatTime(suggestion.startAt)}–
+                    {formatTime(suggestion.endAt)} · {suggestion.capacityMinutes} dk
+                  </span>
+                </span>
+                <span className="waitlist-opening-card__match">
+                  <UsersThree weight="duotone" aria-hidden="true" />
+                  <strong>{suggestion.candidates.length}</strong>
+                  <small>uygun müşteri</small>
+                </span>
+                <Button
+                  variant={suggestion.candidates.length ? "default" : "outline"}
+                  disabled={!suggestion.candidates.length}
+                  onClick={() => setSelectedSuggestion(suggestion)}
+                >
+                  {suggestion.candidates.length
+                    ? "Müşteri seç"
+                    : "Eşleşme yok"}
+                </Button>
+              </article>
+            ))}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOfferEntry(null)}>
-              Vazgeç
-            </Button>
-            <Button
-              disabled={submitting || !professionalId}
-              onClick={() => void createOffer()}
-            >
-              {submitting ? "Oluşturuluyor…" : "Teklifi gönder"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        ) : (
+          <div className="waitlist-openings__empty">
+            <Clock3 weight="duotone" aria-hidden="true" />
+            <span>
+              <strong>Şu anda değerlendirecek boşluk yok</strong>
+              <small>
+                Bir randevu iptal edildiğinde veya başka saate taşındığında
+                açılan saat burada görünür.
+              </small>
+            </span>
+          </div>
+        )}
+      </section>
+
+      <section className="service-workbench" aria-label="Bekleme kayıtları">
+        <div className="service-workbench__toolbar">
+          <select
+            className="admin-filter-select waitlist-status-filter"
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+            aria-label="Bekleme listesi durumu"
+          >
+            {Object.entries(STATUS_LABELS).map(([value, label]) => (
+              <option value={value} key={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <dl
+            className="service-workbench__summary"
+            aria-label="Bekleme listesi özeti"
+          >
+            <div>
+              <dt>{STATUS_LABELS[status]}</dt>
+              <dd>{loading ? "–" : items.length}</dd>
+            </div>
+          </dl>
+        </div>
+
+        {loading ? (
+          <div className="admin-skeleton admin-skeleton--cards" />
+        ) : items.length ? (
+          <div className="waitlist-list">
+            {items.map((entry) => (
+              <article className="waitlist-card" key={entry.id}>
+                <header>
+                  <span className="waitlist-card__mark" aria-hidden="true">
+                    <ListPlus />
+                  </span>
+                  <span className="waitlist-card__identity">
+                    <small>{entry.phoneMasked}</small>
+                    <strong>{entry.fullName}</strong>
+                    <span>
+                      {entry.services.map((service) => service.name).join(" · ")}
+                    </span>
+                  </span>
+                  <b
+                    className={`waitlist-card__status is-${entry.status.toLowerCase()}`}
+                  >
+                    {STATUS_LABELS[entry.status] ?? entry.status}
+                  </b>
+                </header>
+                <div className="waitlist-preferences">
+                  <span>
+                    <CalendarClock aria-hidden="true" />
+                    <small>Tarih</small>
+                    <strong>
+                      {entry.dateFrom === entry.dateTo
+                        ? formatDateKey(entry.dateFrom)
+                        : `${formatDateKey(entry.dateFrom)} – ${formatDateKey(entry.dateTo)}`}
+                    </strong>
+                  </span>
+                  <span>
+                    <Clock3 aria-hidden="true" />
+                    <small>Saat aralığı</small>
+                    <strong>
+                      {minuteLabel(entry.startMinute)}–
+                      {minuteLabel(entry.endMinute)}
+                    </strong>
+                  </span>
+                  <span>
+                    <UserRoundCheck aria-hidden="true" />
+                    <small>Uzman</small>
+                    <strong>
+                      {entry.professional?.name ?? "İlk müsait uzman"}
+                    </strong>
+                  </span>
+                </div>
+                {entry.offers[0] && (
+                  <p className="waitlist-card__note">
+                    <strong>Son teklif</strong>
+                    {formatDateTime(entry.offers[0].startAt)} ·{" "}
+                    {entry.offers[0].professional.name} ·{" "}
+                    {offerStatusLabel(entry.offers[0].status)}
+                  </p>
+                )}
+                <footer>
+                  <span>
+                    {entry.failedOfferCount
+                      ? `${entry.failedOfferCount} yanıtlanmayan teklif`
+                      : entry.status === "ACTIVE"
+                        ? "Uygun boşluk bekleniyor"
+                        : "Teklif geçmişi güncel"}
+                  </span>
+                  {(["ACTIVE", "OFFERED"] as string[]).includes(entry.status) && (
+                    <div>
+                      <Button
+                        variant="outline"
+                        onClick={() => setCancelTarget(entry)}
+                      >
+                        <X /> Kaydı kapat
+                      </Button>
+                    </div>
+                  )}
+                </footer>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="service-catalog-empty">
+            <ListPlus size={26} weight="duotone" aria-hidden="true" />
+            <strong>{emptyStateCopy(status).title}</strong>
+            <p>{emptyStateCopy(status).body}</p>
+          </div>
+        )}
+      </section>
+
+      <SuggestionDialog
+        suggestion={selectedSuggestion}
+        submittingEntryId={submittingEntryId}
+        onOpenChange={(open) => !open && setSelectedSuggestion(null)}
+        onOffer={(entryId) => void createOffer(entryId)}
+      />
+
+      <CancelWaitlistDialog
+        entry={cancelTarget}
+        onOpenChange={(open) => !open && setCancelTarget(null)}
+        onCancelled={() => {
+          setCancelTarget(null);
+          toast.success("Bekleme kaydı kapatıldı.");
+          void load();
+        }}
+        onError={setError}
+      />
     </AdminPageFrame>
   );
 }
 
-function today() {
-  return new Intl.DateTimeFormat("sv-SE", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: "Europe/Istanbul",
-  }).format(new Date());
+function SuggestionDialog({
+  suggestion,
+  submittingEntryId,
+  onOpenChange,
+  onOffer,
+}: {
+  suggestion: AdminWaitlistSuggestion | null;
+  submittingEntryId: string;
+  onOpenChange: (open: boolean) => void;
+  onOffer: (entryId: string) => void;
+}) {
+  return (
+    <Dialog open={Boolean(suggestion)} onOpenChange={onOpenChange}>
+      <DialogContent className="waitlist-candidate-dialog">
+        <DialogHeader>
+          <DialogTitle>Teklif göndereceğin müşteriyi seç</DialogTitle>
+          <DialogDescription>
+            {suggestion
+              ? `${formatDateTime(suggestion.startAt)} için yalnız tercihleri ve hizmet süresi gerçekten uyan müşteriler gösteriliyor.`
+              : "Uygun müşteriler yükleniyor."}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="waitlist-candidate-dialog__notice" role="note">
+          <Clock3 weight="duotone" aria-hidden="true" />
+          <p>
+            <strong>
+              Teklif gönderince saat {suggestion?.offerTtlMinutes ?? 15} dakika
+              tutulur.
+            </strong>{" "}
+            Müşteri SMS bağlantısından kabul ederse randevu doğrudan kesinleşir;
+            ikinci bir yönetici onayı istenmez.
+          </p>
+        </div>
+        <div className="waitlist-candidate-list">
+          {suggestion?.candidates.map((candidate, index) => (
+            <article className="waitlist-candidate" key={candidate.entryId}>
+              <span className="waitlist-candidate__rank" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <span className="waitlist-candidate__identity">
+                <strong>{candidate.fullName}</strong>
+                <small>{candidate.phoneMasked}</small>
+                <span>{candidate.services.map((item) => item.name).join(" · ")}</span>
+              </span>
+              <dl className="waitlist-candidate__facts">
+                <div>
+                  <dt>Randevu</dt>
+                  <dd>
+                    {candidate.offeredProfessional.name} ·{" "}
+                    {candidate.totalDurationMinutes} dk
+                  </dd>
+                </div>
+                <div>
+                  <dt>Müşteri tercihi</dt>
+                  <dd>
+                    {minuteLabel(candidate.startMinute)}–
+                    {minuteLabel(candidate.endMinute)}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Hizmet değeri</dt>
+                  <dd>{formatCurrency(candidate.totalPriceKurus)}</dd>
+                </div>
+              </dl>
+              <Button
+                disabled={Boolean(submittingEntryId)}
+                onClick={() => onOffer(candidate.entryId)}
+              >
+                {submittingEntryId === candidate.entryId
+                  ? "Gönderiliyor…"
+                  : "Teklif gönder"}
+              </Button>
+            </article>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
+
+function CancelWaitlistDialog({
+  entry,
+  onOpenChange,
+  onCancelled,
+  onError,
+}: {
+  entry: AdminWaitlistEntry | null;
+  onOpenChange: (open: boolean) => void;
+  onCancelled: () => void;
+  onError: (message: string) => void;
+}) {
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (entry) setReason("");
+  }, [entry]);
+
+  const valid = reason.trim().length >= 3;
+
+  return (
+    <AlertDialog open={Boolean(entry)} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {entry
+              ? `${entry.fullName} için bekleme kaydı kapatılsın mı?`
+              : "Bekleme kaydı kapatılsın mı?"}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Kapatma nedeni ekip geçmişinde saklanır.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <label className="service-field service-field--wide alert-dialog-field">
+          <span>Kapatma nedeni</span>
+          <Textarea
+            name="waitlistCancellationReason"
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            maxLength={300}
+            placeholder="Örn. Müşteri telefonla vazgeçtiğini bildirdi"
+            autoFocus
+          />
+        </label>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            disabled={!valid || submitting}
+            onClick={() => {
+              if (!entry || !valid) return;
+              setSubmitting(true);
+              void cancelAdminWaitlistEntry(entry.id, reason.trim())
+                .then(() => onCancelled())
+                .catch((cancelReason: unknown) =>
+                  onError(
+                    cancelReason instanceof Error
+                      ? cancelReason.message
+                      : "Kayıt kapatılamadı.",
+                  ),
+                )
+                .finally(() => setSubmitting(false));
+            }}
+          >
+            {submitting ? "Kapatılıyor…" : "Kaydı kapat"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+function emptyStateCopy(status: string) {
+  return (
+    {
+      ACTIVE: {
+        title: "Aktif bekleme kaydı yok",
+        body: "Uygun saat bulamayan doğrulanmış müşteriler burada görünür.",
+      },
+      OFFERED: {
+        title: "Yanıt bekleyen teklif yok",
+        body: "Ekip tarafından gönderilen teklifler müşteri yanıtlayana kadar burada görünür.",
+      },
+      FULFILLED: {
+        title: "Randevuya dönüşen kayıt yok",
+        body: "Müşterinin kabul ettiği ve kesinleşen randevular burada görünür.",
+      },
+      EXPIRED: {
+        title: "Süresi dolan kayıt yok",
+        body: "Geçerlilik aralığı sona eren bekleme kayıtları burada görünür.",
+      },
+      CANCELLED: {
+        title: "İptal edilen kayıt yok",
+        body: "Müşteri veya ekip tarafından kapatılan kayıtlar burada görünür.",
+      },
+    }[status] ?? {
+      title: "Bu durumda kayıt yok",
+      body: "Uygun saat bulamayan doğrulanmış müşteriler burada görünür.",
+    }
+  );
+}
+
+function offerStatusLabel(status: string) {
+  return (
+    {
+      PENDING: "Müşteri yanıtı bekleniyor",
+      ACCEPTED: "Kabul edildi",
+      EXPIRED: "Süresi doldu",
+      REVOKED: "Geri çekildi",
+      FAILED: "Gönderilemedi",
+    }[status] ?? status
+  );
+}
+
 function minuteLabel(value: number) {
   return `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`;
 }
+
 function formatDateKey(value: string) {
   return new Intl.DateTimeFormat("tr-TR", {
     day: "numeric",
     month: "short",
   }).format(new Date(`${value}T12:00:00+03:00`));
 }
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("tr-TR", {
+    day: "numeric",
+    month: "short",
+    weekday: "short",
+    timeZone: "Europe/Istanbul",
+  }).format(new Date(value));
+}
+
+function formatTime(value: string) {
+  return new Intl.DateTimeFormat("tr-TR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Istanbul",
+  }).format(new Date(value));
+}
+
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("tr-TR", {
     day: "numeric",
@@ -316,4 +568,12 @@ function formatDateTime(value: string) {
     minute: "2-digit",
     timeZone: "Europe/Istanbul",
   }).format(new Date(value));
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("tr-TR", {
+    style: "currency",
+    currency: "TRY",
+    maximumFractionDigits: 0,
+  }).format(value / 100);
 }

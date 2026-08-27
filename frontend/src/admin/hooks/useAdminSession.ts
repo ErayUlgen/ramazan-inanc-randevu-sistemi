@@ -9,9 +9,12 @@ import type { AdminIdentity } from "../admin.types";
 
 export type AdminSessionState = "checking" | "guest" | "authenticated";
 
+const LOGIN_LOCK_DURATION_MS = 15 * 60_000;
+
 export function useAdminSession() {
   const [state, setState] = useState<AdminSessionState>("checking");
   const [error, setError] = useState<string | null>(null);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [user, setUser] = useState<AdminIdentity | null>(null);
 
@@ -61,12 +64,18 @@ export function useAdminSession() {
             : credentials,
         );
         setUser(result.user);
+        setLockedUntil(null);
         window.sessionStorage.setItem(
           "ri_admin_identity",
           JSON.stringify(result.user),
         );
         setState("authenticated");
       } catch (requestError) {
+        if (requestError instanceof AdminApiError && requestError.status === 409) {
+          setLockedUntil(Date.now() + LOGIN_LOCK_DURATION_MS);
+        } else {
+          setLockedUntil(null);
+        }
         setError(
           requestError instanceof Error
             ? requestError.message
@@ -95,5 +104,5 @@ export function useAdminSession() {
     setState("guest");
   }, []);
 
-  return { state, user, error, submitting, login, logout, expire };
+  return { state, user, error, lockedUntil, submitting, login, logout, expire };
 }

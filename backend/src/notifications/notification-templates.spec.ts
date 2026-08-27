@@ -1,5 +1,5 @@
 import { NotificationEventType } from '@prisma/client';
-import { renderBookingSms } from './notification-templates';
+import { renderBookingSms, renderWaitlistSms } from './notification-templates';
 
 describe('booking notification templates', () => {
   const booking = {
@@ -44,5 +44,31 @@ describe('booking notification templates', () => {
     );
     expect(message).toContain('ziyaretiniz nasıldı');
     expect(message).toContain('/degerlendir/review-token');
+  });
+
+  it('creates a waitlist offer message with the secure offer route', () => {
+    const message = renderWaitlistSms(NotificationEventType.WAITLIST_OFFERED, {
+      startAt: '2030-07-25T13:00:00.000Z',
+      professionalName: 'Ramazan İnanç',
+      actionToken: 'waitlist-offer-token',
+    });
+
+    expect(message).toContain('Salon ekibimiz size bir randevu saati ayırdı');
+    expect(message).toContain('/bekleme-listesi/teklif/waitlist-offer-token');
+    expect(message).toContain('Ramazan İnanç');
+  });
+
+  it('confirms the booking immediately after an accepted waitlist offer', () => {
+    const message = renderWaitlistSms(
+      NotificationEventType.WAITLIST_OFFER_ACCEPTED,
+      {
+        startAt: '2030-07-25T13:00:00.000Z',
+        professionalName: 'Ramazan İnanç',
+        reference: 'RI-WAIT1234',
+      },
+    );
+
+    expect(message).toContain('Randevunuz kesinleşti');
+    expect(message).toContain('RI-WAIT1234');
   });
 });

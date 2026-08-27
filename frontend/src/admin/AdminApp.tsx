@@ -137,6 +137,7 @@ export function AdminApp() {
       <AdminLogin
         error={session.error}
         submitting={session.submitting}
+        lockedUntil={session.lockedUntil}
         onLogin={session.login}
       />
     );

@@ -12,5 +12,6 @@ backend/generated/
 .superdesign/tmp/
 artifacts/backups/
 .firecrawl/
+.playwright-mcp/
 __pycache__/
 *.pyc

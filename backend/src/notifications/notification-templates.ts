@@ -1,5 +1,9 @@
 import { NotificationEventType } from '@prisma/client';
-import { buildActionToken, publicActionUrl } from '../common/action-token';
+import {
+  buildActionToken,
+  publicActionUrl,
+  publicWaitlistOfferUrl,
+} from '../common/action-token';
 
 type TemplateBooking = {
   id: string;
@@ -105,6 +109,7 @@ export function renderWaitlistSms(
     professionalName?: string;
     expiresAt?: string;
     reference?: string;
+    actionToken?: string;
   },
 ) {
   const format = (value?: string) =>
@@ -120,11 +125,11 @@ export function renderWaitlistSms(
       : '';
   switch (eventType) {
     case NotificationEventType.WAITLIST_JOINED:
-      return `Ramazan İnanç Hair Art Studio: Bekleme listesi kaydınız oluşturuldu. Uygun saat açıldığında SMS ile bilgilendirileceksiniz.`;
+      return `Ramazan İnanç Hair Art Studio: Bekleme listesi kaydınız oluşturuldu. Salon ekibimiz tercihlerinize uyan bir saat seçerse SMS ile bilgilendirileceksiniz.`;
     case NotificationEventType.WAITLIST_OFFERED:
-      return `Size uygun bir randevu saati açıldı: ${format(payload.startAt)}, ${payload.professionalName ?? 'uygun uzman'}. Teklif ${format(payload.expiresAt)} tarihine kadar geçerlidir.`;
+      return `Salon ekibimiz size bir randevu saati ayırdı: ${format(payload.startAt)}, ${payload.professionalName ?? 'uygun uzman'}. Süresi dolmadan kabul edin: ${payload.actionToken ? publicWaitlistOfferUrl(payload.actionToken) : 'randevu sayfamızı ziyaret edin'}`;
     case NotificationEventType.WAITLIST_OFFER_ACCEPTED:
-      return `Bekleme listesi teklifiniz randevuya dönüştürüldü. ${format(payload.startAt)}. Referans: ${payload.reference ?? '-'}`;
+      return `Randevunuz kesinleşti. ${format(payload.startAt)}, ${payload.professionalName ?? 'uygun uzman'}. Referans: ${payload.reference ?? '-'}. Sizi salonda bekliyoruz.`;
     case NotificationEventType.WAITLIST_OFFER_EXPIRED:
       return `Bekleme listesi teklifinizin süresi doldu. Kaydınız uygunsa yeni boşluklar için aktif kalacaktır.`;
     default:

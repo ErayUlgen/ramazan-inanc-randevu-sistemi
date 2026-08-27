@@ -9,7 +9,9 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { StudioWordmark } from "../components/brand/StudioWordmark";
 import { Button } from "../components/ui/button";
+import { Textarea } from "../components/ui/textarea";
 import {
+  CustomerAccountApiError,
   getPublicReview,
   submitPublicReview,
 } from "./customerAccountApi";
@@ -25,9 +27,14 @@ export function PublicReviewPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [canRetryLoad, setCanRetryLoad] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setError("");
+    setCanRetryLoad(false);
     getPublicReview(token)
       .then((value) => {
         if (!active) return;
@@ -35,14 +42,19 @@ export function PublicReviewPage() {
         setRating(value.rating ?? 0);
         setComment(value.comment ?? "");
       })
-      .catch((reason: unknown) => active && setError(friendlyError(reason)))
+      .catch((reason: unknown) => {
+        if (!active) return;
+        setError(friendlyError(reason));
+        setCanRetryLoad(isTransientError(reason));
+      })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [token]);
+  }, [retryKey, token]);
 
-  const submit = async () => {
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!rating) {
       setError("Deneyimini 1 ile 5 yıldız arasında puanlamalısın.");
       return;
@@ -68,7 +80,12 @@ export function PublicReviewPage() {
       {loading ? (
         <ActionLoading />
       ) : error && !review ? (
-        <ActionError message={error} />
+        <ActionError
+          message={error}
+          onRetry={
+            canRetryLoad ? () => setRetryKey((value) => value + 1) : undefined
+          }
+        />
       ) : review?.submittedAt ? (
         <ActionSuccess
           positive
@@ -77,50 +94,62 @@ export function PublicReviewPage() {
           googleUrl={googleUrl}
         />
       ) : review ? (
-        <section className="public-action-card public-review-card">
+        <form
+          className="public-action-card public-review-card"
+          onSubmit={(event) => void submit(event)}
+        >
           <span className="public-action-icon">
             <Star />
           </span>
-          <p className="customer-eyebrow">Doğrulanmış randevu</p>
           <h1>Deneyimin nasıldı?</h1>
           <p className="public-action-lead">
-            Kısa geri bildirimin ekibimizin daha iyi hizmet vermesine yardımcı
-            olur.
+            Puanın ve kısa yorumun doğrudan salon ekibine ulaşır.
           </p>
           <AppointmentSnapshot
             date={review.visitAt}
             professional={review.professional.name}
             services={review.services}
           />
-          <p className="public-review-professional">
-            <span>Değerlendirilen uzman</span>
-            <strong>{review.professional.name}</strong>
-          </p>
           <fieldset className="public-rating">
             <legend>Puanın</legend>
-            <div>
+            <div className="public-rating__options">
               {[1, 2, 3, 4, 5].map((value) => (
-                <button
+                <label
                   key={value}
-                  type="button"
-                  className={value <= rating ? "is-active" : ""}
-                  onClick={() => setRating(value)}
-                  aria-label={`${value} yıldız`}
+                  className={`public-rating__option ${value <= rating ? "is-active" : ""}`}
                 >
-                  <Star fill={value <= rating ? "currentColor" : "none"} />
-                </button>
+                  <input
+                    className="ri-sr-only"
+                    type="radio"
+                    name="rating"
+                    value={value}
+                    checked={rating === value}
+                    onChange={() => {
+                      setRating(value);
+                      setError("");
+                    }}
+                    aria-label={`${value} yıldız`}
+                  />
+                  <Star weight={value <= rating ? "fill" : "regular"} />
+                </label>
               ))}
             </div>
+            <p className="public-rating__meaning" aria-live="polite">
+              {rating ? ratingLabels[rating] : "Bir puan seç"}
+            </p>
           </fieldset>
-          <label className="public-review-comment">
-            Kısa yorum <span>İsteğe bağlı</span>
-            <textarea
-              maxLength={600}
+          <div className="public-review-comment">
+            <label htmlFor="public-review-comment">Kısa yorum</label>
+            <span>İsteğe bağlı</span>
+            <Textarea
+              id="public-review-comment"
+              name="comment"
+              maxLength={1000}
               value={comment}
               onChange={(event) => setComment(event.target.value)}
               placeholder="Karşılama, hizmet ve salon deneyimin…"
             />
-          </label>
+          </div>
           {error && (
             <p className="public-action-error" role="alert">
               <XCircle />
@@ -128,17 +157,17 @@ export function PublicReviewPage() {
             </p>
           )}
           <Button
+            type="submit"
             disabled={busy || !rating}
-            onClick={() => void submit()}
           >
             {busy ? <LoaderCircle className="is-spinning" /> : <Star />}
-            Değerlendirmeyi gönder
+            {busy ? "Gönderiliyor…" : "Değerlendirmeyi gönder"}
           </Button>
           <small>
             Değerlendirmen yalnız salon ekibiyle paylaşılır; herkese açık
             yayımlanmaz.
           </small>
-        </section>
+        </form>
       ) : null}
     </PublicActionShell>
   );
@@ -195,22 +224,35 @@ function AppointmentSnapshot({
 
 function ActionLoading() {
   return (
-    <section className="public-action-card public-action-state">
+    <section
+      className="public-action-card public-action-state"
+      role="status"
+      aria-live="polite"
+    >
       <LoaderCircle className="is-spinning" />
       <strong>Güvenli bağlantı kontrol ediliyor</strong>
     </section>
   );
 }
 
-function ActionError({ message }: { message: string }) {
+function ActionError({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry?: () => void;
+}) {
   return (
     <section className="public-action-card public-action-state">
       <XCircle />
       <h1>Bağlantı kullanılamıyor</h1>
       <p>{message}</p>
-      <Button asChild>
-        <Link to="/hesabim">Randevularıma git</Link>
-      </Button>
+      <div className="public-action-state__actions">
+        {onRetry && <Button onClick={onRetry}>Tekrar dene</Button>}
+        <Button variant={onRetry ? "outline" : "default"} asChild>
+          <Link to="/hesabim">Randevularıma git</Link>
+        </Button>
+      </div>
     </section>
   );
 }
@@ -248,10 +290,32 @@ function ActionSuccess({
 }
 
 function friendlyError(reason: unknown) {
+  if (isTransientError(reason)) {
+    return "Salon sistemine şu anda ulaşılamıyor. İnternet bağlantını kontrol edip tekrar deneyebilirsin.";
+  }
   return reason instanceof Error
     ? reason.message
     : "İşlem şu anda tamamlanamadı. Lütfen daha sonra tekrar dene.";
 }
+
+function isTransientError(reason: unknown) {
+  if (reason instanceof CustomerAccountApiError) {
+    return reason.status === 429 || reason.status >= 500;
+  }
+  if (reason instanceof TypeError) return true;
+  return (
+    reason instanceof Error &&
+    /failed to fetch|network|load failed/i.test(reason.message)
+  );
+}
+
+const ratingLabels: Record<number, string> = {
+  1: "Beklentimin altındaydı",
+  2: "Daha iyi olabilirdi",
+  3: "Memnun kaldım",
+  4: "Çok memnun kaldım",
+  5: "Harikaydı",
+};
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("tr-TR", {

@@ -6,7 +6,6 @@ import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ScissorsIcon } from "@phosphor-icons/react/dist/csr/Scissors";
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
-import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import {
   type FormEvent,
   useCallback,
@@ -79,6 +78,7 @@ export function CatalogPage({ mode, branchId, onLogout, onNavigate }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const lastServiceTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const lastProfessionalTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const openServiceEditor = (
     service: AdminManagedService | "new",
@@ -91,6 +91,21 @@ export function CatalogPage({ mode, branchId, onLogout, onNavigate }: Props) {
   const closeServiceEditor = () => {
     setEditingService(null);
     window.requestAnimationFrame(() => lastServiceTriggerRef.current?.focus());
+  };
+
+  const openProfessionalEditor = (
+    professional: AdminManagedProfessional | "new",
+    trigger: HTMLButtonElement,
+  ) => {
+    lastProfessionalTriggerRef.current = trigger;
+    setEditingProfessional(professional);
+  };
+
+  const closeProfessionalEditor = () => {
+    setEditingProfessional(null);
+    window.requestAnimationFrame(() =>
+      lastProfessionalTriggerRef.current?.focus(),
+    );
   };
 
   const load = useCallback(async () => {
@@ -142,7 +157,7 @@ export function CatalogPage({ mode, branchId, onLogout, onNavigate }: Props) {
             if (mode === "services") {
               openServiceEditor("new", event.currentTarget);
             } else {
-              setEditingProfessional("new");
+              openProfessionalEditor("new", event.currentTarget);
             }
           }}
         >
@@ -165,46 +180,10 @@ export function CatalogPage({ mode, branchId, onLogout, onNavigate }: Props) {
         />
       )}
       {!loading && mode === "professionals" && (
-        <section className="catalog-admin-grid catalog-admin-grid--professionals">
-          {professionals.map((professional) => (
-            <button
-              type="button"
-              className={`catalog-admin-card catalog-admin-card--professional${professional.isActive ? "" : " is-inactive"}`}
-              key={professional.id}
-              onClick={() => setEditingProfessional(professional)}
-            >
-              <ProfessionalAvatar
-                name={professional.name}
-                src={professional.photoUrl ?? undefined}
-              />
-              <span className="catalog-admin-card__copy">
-                <small>
-                  {String(professional.sortOrder + 1).padStart(2, "0")}
-                </small>
-                <strong>{professional.name}</strong>
-                <em>{professional.title}</em>
-              </span>
-              <span className="catalog-admin-card__states">
-                <b className={professional.isActive ? "is-positive" : ""}>
-                  {professional.isActive ? "Aktif" : "Pasif"}
-                </b>
-                <b className={professional.isOnlineBookable ? "is-online" : ""}>
-                  {professional.isOnlineBookable
-                    ? "Online açık"
-                    : "Online kapalı"}
-                </b>
-              </span>
-              <small>{professional.serviceIds.length} hizmet</small>
-            </button>
-          ))}
-        </section>
-      )}
-      {!loading && mode === "professionals" && !professionals.length && (
-        <div className="admin-empty-state">
-          <UserIcon size={27} />
-          <strong>Henüz kayıt yok</strong>
-          <p>İlk kaydı ekleyerek rezervasyon kataloğunu oluşturun.</p>
-        </div>
+        <ProfessionalsWorkbench
+          professionals={professionals}
+          onEdit={openProfessionalEditor}
+        />
       )}
       {error && (
         <AdminErrorBanner
@@ -240,11 +219,14 @@ export function CatalogPage({ mode, branchId, onLogout, onNavigate }: Props) {
           value={editingProfessional === "new" ? null : editingProfessional}
           branchId={branchId}
           services={services}
-          onClose={() => setEditingProfessional(null)}
+          onClose={closeProfessionalEditor}
           onSaved={() => {
             setEditingProfessional(null);
             setNotice("Uzman ayarları güncellendi.");
             void load();
+            window.requestAnimationFrame(() =>
+              lastProfessionalTriggerRef.current?.focus(),
+            );
           }}
         />
       )}
@@ -449,6 +431,142 @@ function ServicesWorkbench({
               </section>
             );
           })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ProfessionalsWorkbench({
+  professionals,
+  onEdit,
+}: {
+  professionals: AdminManagedProfessional[];
+  onEdit: (
+    professional: AdminManagedProfessional | "new",
+    trigger: HTMLButtonElement,
+  ) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
+  const normalizedQuery = deferredQuery.trim().toLocaleLowerCase("tr-TR");
+  const visibleProfessionals = useMemo(
+    () =>
+      professionals
+        .filter((professional) => {
+          if (!normalizedQuery) return true;
+          return `${professional.name} ${professional.title} ${professional.bio ?? ""}`
+            .toLocaleLowerCase("tr-TR")
+            .includes(normalizedQuery);
+        })
+        .sort((left, right) => left.sortOrder - right.sortOrder),
+    [normalizedQuery, professionals],
+  );
+  const activeCount = professionals.filter(
+    (professional) => professional.isActive,
+  ).length;
+  const onlineCount = professionals.filter(
+    (professional) => professional.isActive && professional.isOnlineBookable,
+  ).length;
+
+  return (
+    <section className="service-workbench" aria-label="Uzman kataloğu">
+      <div className="service-workbench__toolbar">
+        <label
+          className="service-search"
+          htmlFor="professional-catalog-search"
+        >
+          <MagnifyingGlassIcon size={20} aria-hidden="true" />
+          <span className="sr-only">Uzman ara</span>
+          <input
+            id="professional-catalog-search"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Uzman adı veya unvan ara"
+            autoComplete="off"
+          />
+        </label>
+        <dl className="service-workbench__summary" aria-label="Ekip özeti">
+          <div>
+            <dt>Uzman</dt>
+            <dd>{professionals.length}</dd>
+          </div>
+          <div>
+            <dt>Aktif</dt>
+            <dd>{activeCount}</dd>
+          </div>
+          <div>
+            <dt>Online</dt>
+            <dd>{onlineCount}</dd>
+          </div>
+        </dl>
+      </div>
+
+      {!professionals.length ? (
+        <div className="service-catalog-empty">
+          <UserIcon size={28} weight="duotone" aria-hidden="true" />
+          <strong>Ekip kaydı yok</strong>
+          <p>Rezervasyon alabilmek için ilk uzmanı ekleyin.</p>
+          <button
+            type="button"
+            onClick={(event) => onEdit("new", event.currentTarget)}
+          >
+            <PlusIcon size={18} weight="bold" />
+            Uzman ekle
+          </button>
+        </div>
+      ) : visibleProfessionals.length === 0 ? (
+        <div className="service-catalog-empty service-catalog-empty--search">
+          <MagnifyingGlassIcon size={28} aria-hidden="true" />
+          <strong>Aramayla eşleşen uzman yok</strong>
+          <p>Farklı bir ad veya unvan deneyin.</p>
+          <button type="button" onClick={() => setQuery("")}>
+            Aramayı temizle
+          </button>
+        </div>
+      ) : (
+        <div className="service-catalog-groups">
+          <div className="admin-service-category__rows">
+            {visibleProfessionals.map((professional) => (
+              <button
+                type="button"
+                className={`service-catalog-row service-catalog-row--professional${
+                  professional.isActive ? "" : " is-inactive"
+                }`}
+                key={professional.id}
+                onClick={(event) => onEdit(professional, event.currentTarget)}
+                aria-label={`${professional.name} uzmanını düzenle`}
+              >
+                <ProfessionalAvatar
+                  name={professional.name}
+                  src={professional.photoUrl ?? undefined}
+                  size="sm"
+                />
+                <span className="service-catalog-row__identity">
+                  <strong>{professional.name}</strong>
+                  <small>{professional.title}</small>
+                </span>
+                <span className="service-catalog-row__facts">
+                  <strong>{professional.serviceIds.length} hizmet</strong>
+                </span>
+                <span className="service-catalog-row__status">
+                  <b className={professional.isActive ? "is-active" : ""}>
+                    {professional.isActive ? "Aktif" : "Pasif"}
+                  </b>
+                  <b className={professional.isOnlineBookable ? "is-online" : ""}>
+                    {professional.isOnlineBookable ? "Online" : "Telefon"}
+                  </b>
+                </span>
+                <CaretRightIcon
+                  className="service-catalog-row__arrow"
+                  size={18}
+                  weight="bold"
+                  aria-hidden="true"
+                />
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </section>
@@ -904,195 +1022,211 @@ function ProfessionalServiceSettings({
     }
   };
 
+  const assignedCount = items.filter((item) => item.isAssigned).length;
+
   return (
-    <section className="professional-service-settings">
-      <header>
+    <section
+      className="service-editor-section"
+      aria-labelledby="professional-services-title"
+    >
+      <header className="service-editor-section__team-header">
         <span>
-          <small>Uzman bazlı çalışma</small>
-          <strong>Hizmet süreleri ve kapasite</strong>
+          <strong id="professional-services-title">Hizmet eşleşmesi</strong>
+          <span>Sunduğu hizmetler, özel süre ve fiyat farkları</span>
         </span>
-        <p>
-          Boş alan salon varsayılanını kullanır. Tamponlar müşterinin randevu
-          süresini değiştirmez.
-        </p>
+        {!loading && (
+          <b>
+            {assignedCount}/{items.length} seçili
+          </b>
+        )}
       </header>
       {loading ? (
-        <div className="operation-card--skeleton professional-service-settings__skeleton" />
+        <div className="admin-skeleton professional-service-rows__skeleton" />
       ) : (
-        <div className="professional-service-settings__list">
+        <div className="professional-service-rows">
           {items.map((item) => (
             <article
               key={item.serviceId}
-              className={item.isAssigned ? "" : "is-disabled"}
+              className={`professional-service-row${item.isAssigned ? "" : " is-disabled"}`}
             >
               <header>
                 <span>
                   <strong>{item.serviceName}</strong>
                   <small>
-                    Salon varsayılanı: {item.salonDurationMinutes} dk /{" "}
+                    Salon varsayılanı: {item.salonDurationMinutes} dk ·{" "}
                     {formatMoney(item.salonPriceKurus)}
                   </small>
                 </span>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={item.isAssigned}
-                    onChange={(event) =>
-                      change(item.serviceId, {
-                        isAssigned: event.target.checked,
-                      })
-                    }
-                  />{" "}
-                  Sunuyor
-                </label>
+                <Switch
+                  checked={item.isAssigned}
+                  onCheckedChange={(checked) =>
+                    change(item.serviceId, { isAssigned: checked })
+                  }
+                  aria-label={`${item.serviceName} hizmetini ${
+                    item.isAssigned ? "kaldır" : "sun"
+                  }`}
+                />
               </header>
-              <div>
-                <label>
-                  Özel süre
-                  <input
-                    disabled={!item.isAssigned}
-                    type="number"
-                    min={5}
-                    step={5}
-                    placeholder={`${item.salonDurationMinutes} dk`}
-                    value={item.durationMinutesOverride ?? ""}
-                    onChange={(event) =>
-                      change(item.serviceId, {
-                        durationMinutesOverride: event.target.value
-                          ? Number(event.target.value)
-                          : null,
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  Özel fiyat (₺)
-                  <input
-                    disabled={!item.isAssigned}
-                    type="number"
-                    min={0}
-                    step={1}
-                    placeholder={`${item.salonPriceKurus / 100}`}
-                    value={
-                      item.priceKurusOverride === null
-                        ? ""
-                        : item.priceKurusOverride / 100
-                    }
-                    onChange={(event) =>
-                      change(item.serviceId, {
-                        priceKurusOverride: event.target.value
-                          ? Math.round(Number(event.target.value) * 100)
-                          : null,
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  Online rezervasyon
-                  <select
-                    disabled={!item.isAssigned}
-                    value={
-                      item.isOnlineBookableOverride === null
-                        ? "inherit"
-                        : item.isOnlineBookableOverride
-                          ? "yes"
-                          : "no"
-                    }
-                    onChange={(event) =>
-                      change(item.serviceId, {
-                        isOnlineBookableOverride:
-                          event.target.value === "inherit"
-                            ? null
-                            : event.target.value === "yes",
-                      })
-                    }
-                  >
-                    <option value="inherit">Salon ayarını kullan</option>
-                    <option value="yes">Online açık</option>
-                    <option value="no">Yalnız telefon</option>
-                  </select>
-                </label>
-                <label>
-                  Ön tampon
-                  <input
-                    disabled={!item.isAssigned}
-                    type="number"
-                    min={0}
-                    step={5}
-                    value={item.bufferBeforeMinutes}
-                    onChange={(event) =>
-                      change(item.serviceId, {
-                        bufferBeforeMinutes: Number(event.target.value),
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  Son tampon
-                  <input
-                    disabled={!item.isAssigned}
-                    type="number"
-                    min={0}
-                    step={5}
-                    value={item.bufferAfterMinutes}
-                    onChange={(event) =>
-                      change(item.serviceId, {
-                        bufferAfterMinutes: Number(event.target.value),
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  Serbest bekleme başlangıcı
-                  <input
-                    disabled={!item.isAssigned}
-                    type="number"
-                    min={0}
-                    step={5}
-                    placeholder="Yok"
-                    value={item.processingStartOffsetMinutes ?? ""}
-                    onChange={(event) =>
-                      change(item.serviceId, {
-                        processingStartOffsetMinutes: event.target.value
-                          ? Number(event.target.value)
-                          : null,
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  Serbest bekleme süresi
-                  <input
-                    disabled={
-                      !item.isAssigned ||
-                      item.processingStartOffsetMinutes === null
-                    }
-                    type="number"
-                    min={0}
-                    step={5}
-                    value={item.processingDurationMinutes}
-                    onChange={(event) =>
-                      change(item.serviceId, {
-                        processingDurationMinutes: Number(event.target.value),
-                      })
-                    }
-                  />
-                </label>
-              </div>
-              <footer>
+              {item.isAssigned && (
+                <div className="professional-service-row__fields">
+                  <label className="service-field">
+                    <span>Özel süre</span>
+                    <span className="service-field__unit">
+                      <Input
+                        type="number"
+                        min={5}
+                        step={5}
+                        placeholder={`${item.salonDurationMinutes}`}
+                        value={item.durationMinutesOverride ?? ""}
+                        onChange={(event) =>
+                          change(item.serviceId, {
+                            durationMinutesOverride: event.target.value
+                              ? Number(event.target.value)
+                              : null,
+                          })
+                        }
+                      />
+                      <b>dk</b>
+                    </span>
+                  </label>
+                  <label className="service-field">
+                    <span>Özel fiyat</span>
+                    <span className="service-field__unit">
+                      <Input
+                        type="number"
+                        min={0}
+                        step={1}
+                        placeholder={`${item.salonPriceKurus / 100}`}
+                        value={
+                          item.priceKurusOverride === null
+                            ? ""
+                            : item.priceKurusOverride / 100
+                        }
+                        onChange={(event) =>
+                          change(item.serviceId, {
+                            priceKurusOverride: event.target.value
+                              ? Math.round(Number(event.target.value) * 100)
+                              : null,
+                          })
+                        }
+                      />
+                      <b>₺</b>
+                    </span>
+                  </label>
+                  <label className="service-field">
+                    <span>Online rezervasyon</span>
+                    <select
+                      value={
+                        item.isOnlineBookableOverride === null
+                          ? "inherit"
+                          : item.isOnlineBookableOverride
+                            ? "yes"
+                            : "no"
+                      }
+                      onChange={(event) =>
+                        change(item.serviceId, {
+                          isOnlineBookableOverride:
+                            event.target.value === "inherit"
+                              ? null
+                              : event.target.value === "yes",
+                        })
+                      }
+                    >
+                      <option value="inherit">Salon ayarını kullan</option>
+                      <option value="yes">Online açık</option>
+                      <option value="no">Yalnız telefon</option>
+                    </select>
+                  </label>
+                  <label className="service-field">
+                    <span>Ön tampon</span>
+                    <span className="service-field__unit">
+                      <Input
+                        type="number"
+                        min={0}
+                        step={5}
+                        value={item.bufferBeforeMinutes}
+                        onChange={(event) =>
+                          change(item.serviceId, {
+                            bufferBeforeMinutes: Number(event.target.value),
+                          })
+                        }
+                      />
+                      <b>dk</b>
+                    </span>
+                  </label>
+                  <label className="service-field">
+                    <span>Son tampon</span>
+                    <span className="service-field__unit">
+                      <Input
+                        type="number"
+                        min={0}
+                        step={5}
+                        value={item.bufferAfterMinutes}
+                        onChange={(event) =>
+                          change(item.serviceId, {
+                            bufferAfterMinutes: Number(event.target.value),
+                          })
+                        }
+                      />
+                      <b>dk</b>
+                    </span>
+                  </label>
+                  <label className="service-field">
+                    <span>
+                      Serbest bekleme başlangıcı <small>İsteğe bağlı</small>
+                    </span>
+                    <span className="service-field__unit">
+                      <Input
+                        type="number"
+                        min={0}
+                        step={5}
+                        placeholder="Yok"
+                        value={item.processingStartOffsetMinutes ?? ""}
+                        onChange={(event) =>
+                          change(item.serviceId, {
+                            processingStartOffsetMinutes: event.target.value
+                              ? Number(event.target.value)
+                              : null,
+                          })
+                        }
+                      />
+                      <b>dk</b>
+                    </span>
+                  </label>
+                  <label className="service-field">
+                    <span>Serbest bekleme süresi</span>
+                    <span className="service-field__unit">
+                      <Input
+                        type="number"
+                        min={0}
+                        step={5}
+                        disabled={item.processingStartOffsetMinutes === null}
+                        value={item.processingDurationMinutes}
+                        onChange={(event) =>
+                          change(item.serviceId, {
+                            processingDurationMinutes: Number(
+                              event.target.value,
+                            ),
+                          })
+                        }
+                      />
+                      <b>dk</b>
+                    </span>
+                  </label>
+                </div>
+              )}
+              <footer className="professional-service-row__footer">
                 <small>
-                  Etkin değer: {item.effectiveDurationMinutes} dk /{" "}
+                  Etkin değer: {item.effectiveDurationMinutes} dk ·{" "}
                   {formatMoney(item.effectivePriceKurus)}
                 </small>
                 <button
                   type="button"
-                  className="admin-quiet-button"
+                  className="service-editor-action service-editor-action--quiet"
                   disabled={savingId === item.serviceId}
                   onClick={() => void save(item)}
                 >
-                  {savingId === item.serviceId
-                    ? "Kaydediliyor…"
-                    : "Hizmet ayarını kaydet"}
+                  {savingId === item.serviceId ? "Kaydediliyor…" : "Kaydet"}
                 </button>
               </footer>
             </article>
@@ -1100,8 +1234,9 @@ function ProfessionalServiceSettings({
         </div>
       )}
       {error && (
-        <p className="admin-form-error" role="alert">
-          {error}
+        <p className="service-editor-error" role="alert">
+          <WarningIcon size={18} weight="fill" aria-hidden="true" />
+          <span>{error}</span>
         </p>
       )}
     </section>
@@ -1133,6 +1268,7 @@ function ProfessionalEditor({
   const [serviceIds, setServiceIds] = useState(value?.serviceIds ?? []);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
   const dirty = value
     ? name !== value.name ||
       title !== value.title ||
@@ -1140,9 +1276,7 @@ function ProfessionalEditor({
       photoUrl !== (value.photoUrl ?? "") ||
       isActive !== value.isActive ||
       (isActive && isOnline) !== value.isOnlineBookable ||
-      sortOrder !== value.sortOrder ||
-      [...serviceIds].sort().join("|") !==
-        [...value.serviceIds].sort().join("|")
+      sortOrder !== value.sortOrder
     : Boolean(
         name.trim() ||
         bio.trim() ||
@@ -1156,14 +1290,20 @@ function ProfessionalEditor({
   const valid =
     name.trim().length >= 2 &&
     title.trim().length >= 2 &&
-    serviceIds.length > 0;
+    (value ? true : serviceIds.length > 0);
   const requestClose = () => {
-    if (
-      !dirty ||
-      window.confirm("Kaydedilmemiş değişiklikleri kapatmak istiyor musunuz?")
-    ) {
-      onClose();
-    }
+    if (!dirty) onClose();
+    else setDiscardDialogOpen(true);
+  };
+
+  const toggleService = (serviceId: string, checked: boolean) => {
+    setServiceIds((current) =>
+      checked
+        ? current.includes(serviceId)
+          ? current
+          : [...current, serviceId]
+        : current.filter((id) => id !== serviceId),
+    );
   };
 
   const submit = async (event: FormEvent) => {
@@ -1192,151 +1332,247 @@ function ProfessionalEditor({
     }
   };
 
+  const assignableServices = services.filter((service) => service.isActive);
+
   return (
-    <div className="admin-action-layer catalog-editor-layer">
-      <button
-        className="admin-action-backdrop"
-        type="button"
-        onClick={requestClose}
-        aria-label="Uzman formunu kapat"
-      />
-      <form
-        className="catalog-editor"
-        onSubmit={submit}
-        role="dialog"
-        aria-modal="true"
-      >
-        <header>
-          <span>
-            <small>Uzman kataloğu</small>
-            <strong>{value ? "Uzmanı düzenle" : "Yeni uzman"}</strong>
-          </span>
-          <button
-            type="button"
-            onClick={requestClose}
-            aria-label="Uzman formunu kapat"
-          >
-            <XIcon size={21} />
-          </button>
-        </header>
-        <div className="catalog-editor__scroll">
-          <div className="catalog-editor__body admin-form-grid">
-          <label>
-            <span>Ad soyad</span>
-            <input
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              required
-              maxLength={100}
-            />
-          </label>
-          <label>
-            <span>Unvan</span>
-            <input
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              required
-              maxLength={100}
-            />
-          </label>
-          <label>
-            <span>Liste sırası</span>
-            <input
-              type="number"
-              min={0}
-              step={1}
-              value={sortOrder}
-              onChange={(event) => setSortOrder(Number(event.target.value))}
-            />
-          </label>
-          <label className="is-full">
-            <span>Kısa açıklama</span>
-            <textarea
-              value={bio}
-              onChange={(event) => setBio(event.target.value)}
-              maxLength={500}
-            />
-          </label>
-          <label className="is-full">
-            <span>
-              Gerçek fotoğraf URL’si <small>isteğe bağlı</small>
-            </span>
-            <input
-              type="url"
-              value={photoUrl}
-              onChange={(event) => setPhotoUrl(event.target.value)}
-              placeholder="https://…"
-            />
-          </label>
-          <fieldset className="is-full checklist-field">
-            <legend>Sunduğu hizmetler</legend>
-            {services
-              .filter((service) => service.isActive)
-              .map((service) => (
-                <label key={service.id}>
-                  <input
-                    type="checkbox"
-                    checked={serviceIds.includes(service.id)}
-                    onChange={() =>
-                      setServiceIds((current) =>
-                        current.includes(service.id)
-                          ? current.filter((id) => id !== service.id)
-                          : [...current, service.id],
-                      )
-                    }
-                  />
-                  <span>{service.name}</span>
-                </label>
-              ))}
-          </fieldset>
-          <label className="admin-switch-row">
-            <input
-              type="checkbox"
-              checked={isActive}
-              onChange={(event) => setIsActive(event.target.checked)}
-            />
-            <span>
-              <strong>Aktif uzman</strong>
-              <small>Salon randevularında seçilebilir.</small>
-            </span>
-          </label>
-          <label className="admin-switch-row">
-            <input
-              type="checkbox"
-              checked={isOnline && isActive}
-              disabled={!isActive}
-              onChange={(event) => setIsOnline(event.target.checked)}
-            />
-            <span>
-              <strong>Online rezervasyon</strong>
-              <small>Müşteri ekranında görünür.</small>
-            </span>
-          </label>
-          </div>
-          {value && <ProfessionalServiceSettings professionalId={value.id} />}
-          {error && (
-            <p className="admin-form-error" role="alert">
-              {error}
-            </p>
-          )}
-        </div>
-        <footer>
-          <button
-            type="button"
-            className="admin-quiet-button"
-            onClick={requestClose}
-          >
-            Vazgeç
-          </button>
-          <button
-            type="submit"
-            className="admin-primary-button"
-            disabled={submitting || !dirty || !valid}
-          >
-            {submitting ? "Kaydediliyor…" : "Uzmanı kaydet"}
-          </button>
-        </footer>
-      </form>
-    </div>
+    <>
+      <Sheet open onOpenChange={(open) => !open && requestClose()}>
+        <SheetContent
+          side="right"
+          className="service-editor-sheet"
+          showCloseButton
+          onEscapeKeyDown={(event) => {
+            if (dirty) {
+              event.preventDefault();
+              setDiscardDialogOpen(true);
+            }
+          }}
+        >
+          <form className="service-editor-form" onSubmit={submit}>
+            <SheetHeader className="service-editor-header">
+              <span className="service-editor-header__icon" aria-hidden="true">
+                <UserIcon size={22} weight="duotone" />
+              </span>
+              <span>
+                <SheetTitle>
+                  {value ? "Uzmanı düzenle" : "Yeni uzman"}
+                </SheetTitle>
+                <SheetDescription>
+                  Kimlik bilgilerini, yayın durumunu ve hizmet eşleşmesini tek
+                  yerden yönetin.
+                </SheetDescription>
+              </span>
+            </SheetHeader>
+
+            <div className="service-editor-scroll">
+              <section
+                className="service-editor-section"
+                aria-labelledby="professional-basics-title"
+              >
+                <header>
+                  <strong id="professional-basics-title">
+                    Temel bilgiler
+                  </strong>
+                  <span>Müşterinin ekip sayfasında göreceği bilgiler</span>
+                </header>
+                <div className="service-editor-grid">
+                  <label className="service-field service-field--wide">
+                    <span>Ad soyad</span>
+                    <Input
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      required
+                      maxLength={100}
+                      autoFocus
+                    />
+                  </label>
+                  <label className="service-field">
+                    <span>Unvan</span>
+                    <Input
+                      value={title}
+                      onChange={(event) => setTitle(event.target.value)}
+                      required
+                      maxLength={100}
+                    />
+                  </label>
+                  <label className="service-field">
+                    <span>Liste sırası</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      step={1}
+                      value={sortOrder}
+                      onChange={(event) =>
+                        setSortOrder(Number(event.target.value))
+                      }
+                    />
+                  </label>
+                  <label className="service-field service-field--wide">
+                    <span>
+                      Kısa açıklama <small>İsteğe bağlı</small>
+                    </span>
+                    <Textarea
+                      value={bio}
+                      onChange={(event) => setBio(event.target.value)}
+                      maxLength={500}
+                      placeholder="Uzmanlık alanını tek cümlede anlatın"
+                    />
+                  </label>
+                  <label className="service-field service-field--wide">
+                    <span>
+                      Gerçek fotoğraf URL’si <small>İsteğe bağlı</small>
+                    </span>
+                    <Input
+                      type="url"
+                      value={photoUrl}
+                      onChange={(event) => setPhotoUrl(event.target.value)}
+                      placeholder="https://…"
+                    />
+                  </label>
+                </div>
+              </section>
+
+              {!value && (
+                <section
+                  className="service-editor-section"
+                  aria-labelledby="professional-services-title"
+                >
+                  <header className="service-editor-section__team-header">
+                    <span>
+                      <strong id="professional-services-title">
+                        Sunduğu hizmetler
+                      </strong>
+                      <span>En az bir hizmet seçilmelidir</span>
+                    </span>
+                    <b>
+                      {serviceIds.length}/{assignableServices.length} seçili
+                    </b>
+                  </header>
+                  <div className="service-professional-list">
+                    {assignableServices.map((service) => {
+                      const checked = serviceIds.includes(service.id);
+                      return (
+                        <label
+                          className={`service-professional-option${checked ? " is-selected" : ""}`}
+                          key={service.id}
+                        >
+                          <span
+                            className="service-professional-option__mark"
+                            aria-hidden="true"
+                          >
+                            <ScissorsIcon size={17} weight="duotone" />
+                          </span>
+                          <span>
+                            <strong>{service.name}</strong>
+                            <small>{service.category}</small>
+                          </span>
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(nextChecked) =>
+                              toggleService(service.id, nextChecked === true)
+                            }
+                            aria-label={`${service.name} hizmetini ${
+                              checked ? "listeden çıkar" : "listeye ekle"
+                            }`}
+                          />
+                        </label>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
+              {value && <ProfessionalServiceSettings professionalId={value.id} />}
+
+              <section
+                className="service-editor-section"
+                aria-labelledby="professional-publish-title"
+              >
+                <header>
+                  <strong id="professional-publish-title">
+                    Yayın durumu
+                  </strong>
+                  <span>Salon ve müşteri ekranındaki kullanılabilirlik</span>
+                </header>
+                <div className="service-publish-options">
+                  <label>
+                    <span>
+                      <strong>Aktif uzman</strong>
+                      <small>Salon randevularında seçilebilir.</small>
+                    </span>
+                    <Switch checked={isActive} onCheckedChange={setIsActive} />
+                  </label>
+                  <label className={!isActive ? "is-disabled" : ""}>
+                    <span>
+                      <strong>Online rezervasyon</strong>
+                      <small>Müşteri ekranında görünür.</small>
+                    </span>
+                    <Switch
+                      checked={isOnline && isActive}
+                      disabled={!isActive}
+                      onCheckedChange={setIsOnline}
+                    />
+                  </label>
+                </div>
+              </section>
+
+              {error && (
+                <p className="service-editor-error" role="alert">
+                  <WarningIcon size={18} weight="fill" aria-hidden="true" />
+                  <span>{error}</span>
+                </p>
+              )}
+            </div>
+
+            <footer className="service-editor-footer">
+              <span aria-live="polite">
+                {!dirty
+                  ? "Değişiklik yok"
+                  : valid
+                    ? "Kaydedilmeyi bekleyen değişiklikler var"
+                    : "Zorunlu alanları tamamlayın"}
+              </span>
+              <div>
+                <button
+                  type="button"
+                  className="service-editor-action service-editor-action--quiet"
+                  onClick={requestClose}
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  className="service-editor-action service-editor-action--primary"
+                  disabled={submitting || !dirty || !valid}
+                >
+                  <FloppyDiskIcon size={18} weight="bold" />
+                  {submitting ? "Kaydediliyor…" : "Uzmanı kaydet"}
+                </button>
+              </div>
+            </footer>
+          </form>
+        </SheetContent>
+      </Sheet>
+
+      <AlertDialog open={discardDialogOpen} onOpenChange={setDiscardDialogOpen}>
+        <AlertDialogContent className="service-discard-dialog">
+          <AlertDialogHeader>
+            <AlertDialogMedia>
+              <WarningIcon size={22} weight="duotone" />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Değişiklikler kaybolacak</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu uzmanda yaptığınız düzenlemeler henüz kaydedilmedi.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Düzenlemeye dön</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={onClose}>
+              Kaydetmeden kapat
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

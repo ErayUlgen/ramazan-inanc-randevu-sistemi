@@ -15,6 +15,7 @@ import type {
   AdminTimeInterval,
   AdminChangeRequest,
   AdminWaitlistEntry,
+  AdminWaitlistSuggestion,
   AdminBookingPolicy,
   AdminOperationsReport,
   AdminActiveSession,
@@ -737,14 +738,20 @@ export const getAdminWaitlist = (branchId: string, status?: string) => {
   return adminRequest<AdminWaitlistEntry[]>(`/admin/waitlist?${query}`);
 };
 
-export const createAdminWaitlistOffer = (
-  id: string,
-  input: { professionalId: string; date: string; startTime: string },
+export const getAdminWaitlistSuggestions = () =>
+  adminRequest<AdminWaitlistSuggestion[]>(`/admin/waitlist/suggestions`);
+
+export const createAdminWaitlistSuggestionOffer = (
+  suggestionId: string,
+  entryId: string,
 ) =>
-  adminRequest<AdminWaitlistEntry>(`/admin/waitlist/${id}/offers`, {
+  adminRequest<AdminWaitlistEntry>(
+    `/admin/waitlist/suggestions/${suggestionId}/offers`,
+    {
     method: "POST",
-    body: JSON.stringify(input),
-  });
+      body: JSON.stringify({ entryId }),
+    },
+  );
 
 export const cancelAdminWaitlistEntry = (id: string, reason: string) =>
   adminRequest<AdminWaitlistEntry>(`/admin/waitlist/${id}`, {

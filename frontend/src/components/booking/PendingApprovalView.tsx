@@ -22,10 +22,11 @@ export function PendingApprovalView({ flow }: { flow: BookingFlow }) {
 
   return (
     <div className="app-shell pending-shell">
-      <section
-        className="compact-brand-stage"
-        aria-label="Ramazan İnanç Hair Art Studio"
-      >
+      {/* aria-label bilinçli olarak yok: BrandHeader kendi erişilebilir adını
+          görünen metinden zaten üretiyor (bkz. BrandHeader.tsx). Bu sarmalayıcıya
+          ayrı bir aria-label eklemek aynı Türkçe nokta'lı İ uyuşmazlığını bir
+          seviye yukarı taşırdı. */}
+      <section className="compact-brand-stage">
         <BrandHeader dataMode={flow.dataMode} mapsUrl={flow.mapsUrl} />
       </section>
       <main className="pending-layout">

@@ -100,6 +100,7 @@ export function ConfirmationStep({ flow }: { flow: BookingFlow }) {
               <label htmlFor="fullName">Ad soyad</label>
               <input
                 id="fullName"
+                name="fullName"
                 value={values.fullName}
                 onChange={(event) => update("fullName", event.target.value)}
                 placeholder="Adın ve soyadın"
@@ -122,6 +123,7 @@ export function ConfirmationStep({ flow }: { flow: BookingFlow }) {
                 <span aria-hidden="true">+90</span>
                 <input
                   id="phone"
+                  name="phone"
                   value={values.phone}
                   onChange={(event) => update("phone", event.target.value)}
                   placeholder="5xx xxx xx xx"
@@ -168,6 +170,7 @@ export function ConfirmationStep({ flow }: { flow: BookingFlow }) {
                 <label htmlFor="verificationCode">SMS doğrulama kodu</label>
                 <input
                   id="verificationCode"
+                  name="verificationCode"
                   className="code-field"
                   value={values.verificationCode}
                   onChange={(event) =>
@@ -211,6 +214,7 @@ export function ConfirmationStep({ flow }: { flow: BookingFlow }) {
           </label>
           <textarea
             id="bookingNote"
+            name="note"
             value={values.note}
             onChange={(event) => update("note", event.target.value)}
             placeholder="Saçın, stil beklentin veya hassasiyetlerin…"

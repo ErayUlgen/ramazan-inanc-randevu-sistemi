@@ -916,104 +916,462 @@
   text-align: center;
 }
 
-.waitlist-join-card {
-  max-width: 760px;
+.waitlist-page {
+  background:
+    linear-gradient(var(--ri-border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ri-border-subtle) 1px, transparent 1px),
+    var(--ri-workbench-canvas);
+  background-size: 48px 48px;
+}
+
+.waitlist-main {
+  width: min(1040px, calc(100% - 48px));
   margin: 0 auto;
+  padding: 48px 0 80px;
 }
-.waitlist-form {
-  grid-template-columns: 1fr 1fr;
+
+.waitlist-workbench {
+  overflow: hidden;
+  border: 1px solid var(--ri-workbench-border-strong);
+  border-radius: var(--ri-radius-stage);
+  background: var(--ri-workbench-raised);
+  box-shadow: var(--ri-shadow-focus);
 }
-.waitlist-form > label:first-child,
-.waitlist-form > label:nth-child(2),
-.waitlist-form > label:last-of-type,
-.waitlist-form > button,
-.waitlist-selection-summary {
-  grid-column: 1 / -1;
-}
-.waitlist-date-grid {
+
+.waitlist-heading {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  padding: 28px 30px 24px;
+  border-bottom: 1px solid var(--ri-workbench-border);
 }
-.waitlist-date-grid label {
+
+.waitlist-heading__mark,
+.waitlist-state__mark {
   display: grid;
-  gap: 7px;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--ri-emerald) 40%, transparent);
+  border-radius: var(--ri-radius-card);
+  color: var(--ri-emerald);
+  background: var(--ri-emerald-soft);
 }
-.waitlist-date-grid label span {
-  color: var(--ri-ink);
-  font-size: 13px;
-  font-weight: 700;
+
+.waitlist-heading__mark svg,
+.waitlist-state__mark svg {
+  width: 24px;
+  height: 24px;
 }
-.waitlist-date-grid input,
-.waitlist-form textarea {
-  min-height: 46px;
-  padding: 0 12px;
-  border: 1px solid var(--ri-border-strong);
-  border-radius: 10px;
-  background: var(--ri-surface-subtle);
-  color: var(--ri-ink);
+
+.waitlist-heading small,
+.waitlist-form-v2__heading small,
+.waitlist-state > small {
+  color: var(--ri-emerald);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.waitlist-heading h1 {
+  max-width: 720px;
+  margin: 3px 0 5px;
+  color: var(--ri-ink-strong);
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 760;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+
+.waitlist-heading p,
+.waitlist-form-v2__heading p,
+.waitlist-state > p,
+.waitlist-recovery > p {
+  margin: 0;
+  color: var(--ri-muted);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.waitlist-notice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 20px 30px 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--ri-danger) 32%, transparent);
+  border-radius: var(--ri-radius-card);
+  color: var(--ri-danger);
+  background: var(--ri-danger-soft);
   font-size: 14px;
   font-weight: 700;
+  line-height: 1.45;
 }
-.waitlist-form textarea {
-  min-height: 90px;
-  padding-top: 11px;
-  resize: vertical;
+
+.waitlist-notice svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
 }
-.waitlist-selection-summary {
-  min-height: 62px;
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 12px;
-  border: 1px solid var(--ri-primary-border);
-  border-radius: 11px;
-  background: var(--ri-primary-soft);
-}
-.waitlist-selection-summary > svg {
-  width: 22px;
-  color: var(--ri-primary);
-}
-.waitlist-selection-summary > span {
-  min-width: 0;
+
+.waitlist-layout {
   display: grid;
-  gap: 3px;
+  grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.18fr);
+  min-height: 470px;
 }
-.waitlist-selection-summary strong {
-  overflow: hidden;
-  font-size: 13px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+
+.waitlist-summary {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 28px 30px;
+  border-right: 1px solid var(--ri-workbench-border);
+  background: var(--ri-surface-subtle);
 }
-.waitlist-selection-summary small {
+
+.waitlist-summary__eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  gap: 7px;
+  align-items: center;
+  color: var(--ri-emerald);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.waitlist-summary__eyebrow svg {
+  width: 17px;
+  height: 17px;
+}
+
+.waitlist-summary h2 {
+  margin: 10px 0 22px;
+  color: var(--ri-ink-strong);
+  font-size: 24px;
+  font-weight: 760;
+  letter-spacing: -0.03em;
+}
+
+.waitlist-summary dl {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.waitlist-summary dl > div {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid var(--ri-border-subtle);
+}
+
+.waitlist-summary dt {
   color: var(--ri-muted);
   font-size: 12px;
   font-weight: 700;
 }
-.waitlist-success {
+
+.waitlist-summary dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--ri-ink);
+  font-size: 14px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.waitlist-summary__total {
   display: grid;
-  justify-items: center;
-  gap: 10px;
-  padding: 28px;
-  text-align: center;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  overflow: hidden;
+  margin-top: 18px;
+  border: 1px solid var(--ri-border);
+  border-radius: var(--ri-radius-card);
+  background: var(--ri-border);
 }
-.waitlist-success > svg {
-  width: 46px;
-  height: 46px;
-  padding: 11px;
-  border-radius: 14px;
-  background: var(--ri-primary-soft);
-  color: var(--ri-primary);
+
+.waitlist-summary__total > span {
+  display: grid;
+  gap: 2px;
+  padding: 13px;
+  background: var(--ri-surface-raised);
 }
-.waitlist-success strong {
-  font-size: 18px;
+
+.waitlist-summary__total small,
+.waitlist-offer-facts small,
+.waitlist-reference span {
+  color: var(--ri-muted);
+  font-size: 11px;
   font-weight: 700;
 }
-.waitlist-success span {
+
+.waitlist-summary__total strong,
+.waitlist-offer-facts strong {
+  color: var(--ri-ink-strong);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.waitlist-summary > p {
+  margin: auto 0 0;
+  padding-top: 22px;
+  color: var(--ri-muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.waitlist-summary--entry > .ri-button {
+  width: 100%;
+  justify-content: center;
+  margin-top: auto;
+}
+
+.waitlist-form-pane {
+  min-width: 0;
+  padding: 28px 30px 30px;
+}
+
+.waitlist-form-v2 {
+  display: grid;
+  gap: 20px;
+}
+
+.waitlist-form-v2__heading {
+  display: grid;
+  gap: 4px;
+}
+
+.waitlist-form-v2__heading h2,
+.waitlist-state h2,
+.waitlist-recovery h2 {
+  margin: 0;
+  color: var(--ri-ink-strong);
+  font-size: 26px;
+  font-weight: 760;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.waitlist-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.waitlist-field {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.waitlist-field > label {
+  color: var(--ri-ink-soft);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.waitlist-field :is(input, textarea) {
+  width: 100%;
+  min-height: 48px;
+  border-color: var(--ri-border-strong);
+  color: var(--ri-ink-strong);
+  background: var(--ri-surface-subtle);
+  font-size: 15px;
+  font-weight: 650;
+  transition:
+    border-color var(--ri-speed-micro) var(--ri-ease-out),
+    box-shadow var(--ri-speed-micro) var(--ri-ease-out),
+    background var(--ri-speed-micro) var(--ri-ease-out);
+}
+
+.waitlist-field textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.waitlist-field :is(input, textarea):focus-visible {
+  border-color: var(--ri-emerald);
+  background: var(--ri-surface-raised);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ri-emerald) 18%, transparent);
+}
+
+.waitlist-field :is(input, textarea)[aria-invalid="true"] {
+  border-color: var(--ri-danger);
+}
+
+.waitlist-field > small {
+  color: var(--ri-danger);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.waitlist-form-v2 > .ri-button:last-child {
+  min-height: 50px;
+  justify-content: center;
+}
+
+.waitlist-note-toggle {
+  width: fit-content;
+  min-height: 44px;
+  margin: -6px 0;
+  padding-inline: 0 !important;
+  color: var(--ri-muted) !important;
+}
+
+.waitlist-code-input {
+  letter-spacing: 0.24em;
+  text-align: center;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+}
+
+.waitlist-otp__time {
+  display: inline-flex;
+  width: fit-content;
+  gap: 8px;
+  align-items: center;
   color: var(--ri-muted);
   font-size: 13px;
   font-weight: 700;
+}
+
+.waitlist-otp__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.waitlist-state,
+.waitlist-recovery {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  justify-items: start;
+  gap: 12px;
+  padding: 38px 42px;
+}
+
+.waitlist-state.is-fulfilled .waitlist-state__mark {
+  color: white;
+  background: var(--ri-emerald);
+}
+
+.waitlist-state__note {
+  padding: 11px 13px;
+  border-left: 3px solid var(--ri-emerald);
+  color: var(--ri-ink-soft);
+  background: var(--ri-emerald-soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.waitlist-offer-facts {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--ri-border);
+  border-radius: var(--ri-radius-card);
+  background: var(--ri-border);
+}
+
+.waitlist-offer-facts > span {
+  display: grid;
+  gap: 3px;
+  padding: 13px;
+  background: var(--ri-surface-subtle);
+}
+
+.waitlist-reference {
+  display: grid;
+  gap: 2px;
+  padding: 13px 15px;
+  border: 1px solid color-mix(in srgb, var(--ri-emerald) 34%, transparent);
+  border-radius: var(--ri-radius-card);
+  background: var(--ri-emerald-soft);
+}
+
+.waitlist-reference strong {
+  color: var(--ri-emerald-hover);
+  font-family: var(--ri-font-display);
+  font-size: 19px;
+  letter-spacing: 0.04em;
+}
+
+.waitlist-state__footnote {
+  font-size: 13px !important;
+}
+
+.waitlist-recovery {
+  grid-column: 1 / -1;
+  min-height: 380px;
+  justify-items: center;
+  text-align: center;
+}
+
+.waitlist-recovery > p {
+  max-width: 500px;
+}
+
+.waitlist-recovery > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.waitlist-loading {
+  display: grid;
+  min-height: 420px;
+  grid-template-columns: repeat(3, 38px);
+  align-content: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--ri-muted);
+  text-align: center;
+}
+
+.waitlist-loading span {
+  height: 8px;
+  border-radius: 2px;
+  background: var(--ri-border);
+  animation: waitlist-loading-pulse 1.15s var(--ri-ease-in-out) infinite
+    alternate;
+}
+
+.waitlist-loading span:nth-child(2) {
+  animation-delay: 120ms;
+}
+.waitlist-loading span:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.waitlist-loading strong {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+@keyframes waitlist-loading-pulse {
+  to {
+    background: var(--ri-emerald);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .waitlist-note-toggle:hover {
+    color: var(--ri-ink-strong) !important;
+  }
 }
 
 @media (max-width: 680px) {
@@ -1033,24 +1391,89 @@
   .booking-change-slots {
     grid-template-columns: repeat(3, 1fr);
   }
-  .waitlist-form {
+  .waitlist-main {
+    width: min(100% - 24px, 1040px);
+    padding: 24px 0 56px;
+  }
+  .waitlist-heading {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+    padding: 22px 20px 20px;
+  }
+  .waitlist-heading__mark,
+  .waitlist-state__mark {
+    width: 42px;
+    height: 42px;
+  }
+  .waitlist-heading h1 {
+    font-size: clamp(28px, 9vw, 36px);
+  }
+  .waitlist-notice {
+    margin: 16px 20px 0;
+  }
+  .waitlist-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .waitlist-summary {
+    padding: 22px 20px;
+    border-right: 0;
+    border-bottom: 1px solid var(--ri-workbench-border);
+  }
+  .waitlist-summary > p {
+    margin-top: 18px;
+  }
+  .waitlist-form-pane,
+  .waitlist-state,
+  .waitlist-recovery {
+    padding: 24px 20px;
+  }
+  .waitlist-fields {
     grid-template-columns: 1fr;
   }
-  .waitlist-form > *,
-  .waitlist-form > label:first-child,
-  .waitlist-form > label:nth-child(2),
-  .waitlist-form > label:last-of-type,
-  .waitlist-form > button,
-  .waitlist-selection-summary {
-    grid-column: auto;
-  }
-  .waitlist-date-grid {
+  .waitlist-offer-facts {
     grid-template-columns: 1fr;
+  }
+  .waitlist-offer-facts > span {
+    grid-template-columns: 1fr auto;
+    align-items: center;
   }
 }
 
 @media (max-width: 390px) {
   .booking-change-slots {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .waitlist-main {
+    width: min(100% - 16px, 1040px);
+  }
+  .waitlist-heading {
+    grid-template-columns: 1fr;
+    padding-inline: 16px;
+  }
+  .waitlist-heading__mark {
+    width: 38px;
+    height: 38px;
+  }
+  .waitlist-notice {
+    margin-inline: 16px;
+  }
+  .waitlist-summary,
+  .waitlist-form-pane,
+  .waitlist-state,
+  .waitlist-recovery {
+    padding-inline: 16px;
+  }
+  .waitlist-summary__total {
+    grid-template-columns: 1fr;
+  }
+  .waitlist-otp__actions,
+  .waitlist-recovery > div {
+    display: grid;
+    width: 100%;
+  }
+  .waitlist-otp__actions .ri-button,
+  .waitlist-recovery .ri-button {
+    width: 100%;
+    justify-content: center;
   }
 }

@@ -702,7 +702,7 @@ model BranchBookingPolicy {
   sameDayBookingCutoffMinute                 Int?     @map("same_day_booking_cutoff_minute")
   allowLateCancellation                      Boolean  @default(true) @map("allow_late_cancellation")
   waitlistEnabled                            Boolean  @default(true) @map("waitlist_enabled")
-  automaticWaitlistOffers                    Boolean  @default(true) @map("automatic_waitlist_offers")
+  automaticWaitlistOffers                    Boolean  @default(false) @map("automatic_waitlist_offers")
   salonPhone                                 String?  @map("salon_phone")
   whatsappPhone                              String?  @map("whatsapp_phone")
   mapsUrl                                    String?  @map("maps_url")

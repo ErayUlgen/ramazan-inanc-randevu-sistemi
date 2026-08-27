@@ -5,7 +5,19 @@ import { ClipboardTextIcon } from "@phosphor-icons/react/dist/csr/ClipboardText"
 import { DownloadSimpleIcon } from "@phosphor-icons/react/dist/csr/DownloadSimple";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ShieldCheckIcon } from "@phosphor-icons/react/dist/csr/ShieldCheck";
+import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "../../components/ui/alert-dialog";
 import type { AdminManagedProfessional, AdminManagedService } from "../admin.types";
 import type {
   AdminFormTemplate,
@@ -182,6 +194,9 @@ function FormSettings({
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [fields, setFields] = useState<FormField[]>([]);
+  const [archiveTarget, setArchiveTarget] = useState<AdminFormTemplate | null>(
+    null,
+  );
   const addField = () =>
     setFields([
       ...fields,
@@ -231,6 +246,7 @@ function FormSettings({
           {fields.map((field, index) => (
             <div key={`${field.key}-${index}`}>
               <input
+                name={`field-label-${index}`}
                 aria-label="Alan etiketi"
                 value={field.label}
                 onChange={(event) => {
@@ -240,6 +256,8 @@ function FormSettings({
                 }}
               />
               <select
+                name={`field-type-${index}`}
+                aria-label="Alan türü"
                 value={field.type}
                 onChange={(event) => {
                   const next = [...fields];
@@ -262,6 +280,7 @@ function FormSettings({
               {(field.type === "SINGLE_CHOICE" ||
                 field.type === "MULTI_CHOICE") && (
                 <input
+                  name={`field-options-${index}`}
                   aria-label="Seçenekler"
                   placeholder="Seçenekleri virgülle ayırın"
                   value={(field.options ?? []).join(", ")}
@@ -280,6 +299,7 @@ function FormSettings({
               )}
               {field.type === "CHECKBOX" && (
                 <select
+                  name={`field-consent-${index}`}
                   aria-label="Onay türü"
                   value={field.consentType ?? "OPERATIONAL_CONSENT"}
                   onChange={(event) => {
@@ -301,6 +321,7 @@ function FormSettings({
               )}
               <label>
                 <input
+                  name={`field-required-${index}`}
                   type="checkbox"
                   checked={field.required ?? false}
                   onChange={(event) => {
@@ -372,7 +393,7 @@ function FormSettings({
                 </button>
               )}
               {form.status !== "ARCHIVED" && (
-                <button type="button" onClick={() => void archiveFormTemplate(form.id).then(() => reload())}>
+                <button type="button" onClick={() => setArchiveTarget(form)}>
                   Arşivle
                 </button>
               )}
@@ -384,6 +405,7 @@ function FormSettings({
                 return (
                   <label key={service.id}>
                     <input
+                      name={`form-service-${form.id}-${service.id}`}
                       type="checkbox"
                       checked={checked}
                       onChange={() => {
@@ -408,6 +430,54 @@ function FormSettings({
           </article>
         ))}
       </div>
+
+      <AlertDialog
+        open={Boolean(archiveTarget)}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia>
+              <WarningIcon size={22} weight="duotone" />
+            </AlertDialogMedia>
+            <AlertDialogTitle>
+              {archiveTarget
+                ? `${archiveTarget.name} arşivlensin mi?`
+                : "Form arşivlensin mi?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Arşivlenen form yeni randevularda müşteriye gösterilmez; bu
+              forma bağlı hizmetler artık ön görüşme formu istemeden
+              rezervasyon alır.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                if (!archiveTarget) return;
+                const target = archiveTarget;
+                void archiveFormTemplate(target.id)
+                  .then(() => {
+                    toast.success(`${target.name} arşivlendi.`);
+                    return reload();
+                  })
+                  .catch((reason: unknown) =>
+                    fail(
+                      reason instanceof Error
+                        ? reason.message
+                        : "Form arşivlenemedi.",
+                    ),
+                  )
+                  .finally(() => setArchiveTarget(null));
+              }}
+            >
+              Arşivle
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -464,7 +534,12 @@ function NotificationSettings({
       <section className="sprint12-list">
         <header>
           <h3>Bildirim merkezi</h3>
-          <select value={status} onChange={(event) => setStatus(event.target.value)}>
+          <select
+            name="notification-status-filter"
+            aria-label="Bildirim durumu filtresi"
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+          >
             <option value="">Tüm durumlar</option>
             <option value="PENDING">Bekleyen</option>
             <option value="SENT">Gönderildi</option>
@@ -515,6 +590,7 @@ function NotificationRuleEditor({
       <summary>Düzenle</summary>
       <label className="sprint12-toggle">
         <input
+          name={`rule-active-${rule.id}`}
           type="checkbox"
           checked={active}
           onChange={(event) => setActive(event.target.checked)}
@@ -524,6 +600,7 @@ function NotificationRuleEditor({
       <label>
         <span>Kaç dakika önce</span>
         <input
+          name={`rule-lead-${rule.id}`}
           type="number"
           min={0}
           value={leadMinutes}
@@ -534,6 +611,7 @@ function NotificationRuleEditor({
       <label>
         <span>Mesaj şablonu</span>
         <textarea
+          name={`rule-message-${rule.id}`}
           value={messageTemplate}
           placeholder="Boşsa sistemin güvenli varsayılan metni kullanılır"
           onChange={(event) => setMessageTemplate(event.target.value)}
@@ -577,6 +655,9 @@ function CalendarSettings({
 }) {
   const [label, setLabel] = useState("Salon takvimi");
   const [professionalId, setProfessionalId] = useState("");
+  const [revokeTarget, setRevokeTarget] = useState<CalendarSubscription | null>(
+    null,
+  );
   return (
     <div className="sprint12-split">
       <form
@@ -597,10 +678,10 @@ function CalendarSettings({
         }}
       >
         <header><CalendarDotsIcon /><span><small>Tek yönlü ICS</small><h3>Yeni abonelik</h3></span></header>
-        <label><span>Abonelik adı</span><input value={label} onChange={(event) => setLabel(event.target.value)} required /></label>
+        <label><span>Abonelik adı</span><input name="calendar-label" value={label} onChange={(event) => setLabel(event.target.value)} required /></label>
         <label>
           <span>Kapsam</span>
-          <select value={professionalId} onChange={(event) => setProfessionalId(event.target.value)}>
+          <select name="calendar-scope" value={professionalId} onChange={(event) => setProfessionalId(event.target.value)}>
             <option value="">Bütün salon</option>
             {professionals.map((professional) => <option key={professional.id} value={professional.id}>{professional.name}</option>)}
           </select>
@@ -610,7 +691,13 @@ function CalendarSettings({
         {secretUrl && (
           <div className="calendar-secret" role="status">
             <strong>URL yalnız şimdi gösterilir</strong>
-            <input readOnly value={secretUrl} onFocus={(event) => event.currentTarget.select()} />
+            <input
+              name="calendar-secret-url"
+              aria-label="Takvim abonelik URL'si"
+              readOnly
+              value={secretUrl}
+              onFocus={(event) => event.currentTarget.select()}
+            />
             <button type="button" onClick={() => void navigator.clipboard.writeText(secretUrl).then(() => toast.success("Takvim URL’si kopyalandı."))}>Kopyala</button>
           </div>
         )}
@@ -629,13 +716,61 @@ function CalendarSettings({
               {!subscription.revokedAt && (
                 <>
                   <button type="button" onClick={() => void rotateCalendarSubscription(subscription.id).then((result) => { setSecretUrl(result.url); return reload(); })}>Yenile</button>
-                  <button type="button" onClick={() => void revokeCalendarSubscription(subscription.id).then(() => reload())}>İptal et</button>
+                  <button type="button" onClick={() => setRevokeTarget(subscription)}>İptal et</button>
                 </>
               )}
             </div>
           </article>
         ))}
       </div>
+
+      <AlertDialog
+        open={Boolean(revokeTarget)}
+        onOpenChange={(open) => !open && setRevokeTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia>
+              <WarningIcon size={22} weight="duotone" />
+            </AlertDialogMedia>
+            <AlertDialogTitle>
+              {revokeTarget
+                ? `${revokeTarget.label} iptal edilsin mi?`
+                : "Abonelik iptal edilsin mi?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu URL'yi kullanan takvim uygulamaları hemen erişimini kaybeder;
+              işlem geri alınamaz, yeniden abone olmak için yeni bir URL
+              oluşturulması gerekir.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                if (!revokeTarget) return;
+                const target = revokeTarget;
+                void revokeCalendarSubscription(target.id)
+                  .then(() => {
+                    toast.success(`${target.label} iptal edildi.`);
+                    return reload();
+                  })
+                  .catch((reason: unknown) =>
+                    fail(
+                      reason instanceof Error
+                        ? reason.message
+                        : "Abonelik iptal edilemedi.",
+                    ),
+                  )
+                  .finally(() => setRevokeTarget(null));
+              }}
+            >
+              Aboneliği iptal et
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -676,6 +811,7 @@ function AuditSettings({
         <label>
           <span>Başlangıç</span>
           <input
+            name="audit-from"
             type="date"
             value={range.from}
             onChange={(event) =>
@@ -686,6 +822,7 @@ function AuditSettings({
         <label>
           <span>Bitiş</span>
           <input
+            name="audit-to"
             type="date"
             value={range.to}
             onChange={(event) =>
@@ -696,6 +833,7 @@ function AuditSettings({
         <label>
           <span>İşlem</span>
           <input
+            name="audit-action"
             value={action}
             onChange={(event) => setAction(event.target.value)}
             placeholder="Örn. BOOKING"
@@ -704,6 +842,7 @@ function AuditSettings({
         <label>
           <span>Kayıt türü</span>
           <select
+            name="audit-entity-type"
             value={entityType}
             onChange={(event) => setEntityType(event.target.value)}
           >

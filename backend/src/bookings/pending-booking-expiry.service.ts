@@ -57,7 +57,9 @@ export class PendingBookingExpiryService
         data: { status: BookingStatus.EXPIRED },
       });
       if (result.count) {
-        this.logger.log(`${result.count} süresi dolmuş hold serbest bırakıldı.`);
+        this.logger.log(
+          `${result.count} süresi dolmuş hold serbest bırakıldı.`,
+        );
       }
       return result.count;
     } catch (error) {

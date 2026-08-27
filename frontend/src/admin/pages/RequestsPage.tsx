@@ -54,7 +54,7 @@ export function RequestsPage({ branchId, onLogout, onNavigate }: Props) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Talepler yüklenemedi.",
+          : "Randevu değişiklikleri yüklenemedi.",
       );
     } finally {
       setLoading(false);
@@ -97,118 +97,113 @@ export function RequestsPage({ branchId, onLogout, onNavigate }: Props) {
     <AdminPageFrame
       section="requests"
       eyebrow="Karar kuyruğu"
-      title="Değişiklik talepleri"
-      description="Mevcut randevuyu koruyarak istenen yeni saati karşılaştır ve sonuçlandır."
+      title="Randevu değişiklikleri"
+      description="Müşterilerin tarih, saat veya uzman değişikliği isteklerini incele ve sonuçlandır."
       onLogout={onLogout}
       onNavigate={onNavigate}
-      actions={
-        <select
-          className="admin-filter-select"
-          value={status}
-          onChange={(event) => setStatus(event.target.value)}
-          aria-label="Talep durumu"
-        >
-          <option value="PENDING">Bekleyenler</option>
-          <option value="APPROVED">Onaylananlar</option>
-          <option value="REJECTED">Reddedilenler</option>
-          <option value="EXPIRED">Süresi dolanlar</option>
-        </select>
-      }
     >
       {error && (
         <AdminErrorBanner
-          title="Talepler yenilenemedi"
+          title="Randevu değişiklikleri yenilenemedi"
           error={error}
-          fallback="Talep listesini şu an yenileyemedik. Birkaç saniye sonra yeniden deneyebilirsin."
+          fallback="Değişiklik listesini şu an yenileyemedik. Birkaç saniye sonra yeniden deneyebilirsin."
           onRetry={() => void load()}
           retryLabel="Listeyi yenile"
         />
       )}
-      {loading ? (
-        <div className="operation-list">
-          {[1, 2, 3].map((key) => (
-            <div
-              className="operation-card operation-card--skeleton"
-              key={key}
-            />
-          ))}
+      <section className="service-workbench" aria-label="Randevu değişiklikleri">
+        <div className="service-workbench__toolbar">
+          <select
+            className="admin-filter-select requests-status-filter"
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+            aria-label="Talep durumu"
+          >
+            <option value="PENDING">Bekleyenler</option>
+            <option value="APPROVED">Onaylananlar</option>
+            <option value="REJECTED">Reddedilenler</option>
+            <option value="EXPIRED">Süresi dolanlar</option>
+          </select>
+          <dl className="service-workbench__summary" aria-label="Talep özeti">
+            <div>
+              <dt>{statusLabel(status as AdminChangeRequest["status"])}</dt>
+              <dd>{loading ? "–" : items.length}</dd>
+            </div>
+          </dl>
         </div>
-      ) : items.length ? (
-        <div className="operation-list">
-          {items.map((item) => (
-            <article
-              className="operation-card change-request-card"
-              key={item.id}
-            >
-              <header>
-                <span className="operation-icon">
-                  <CalendarClock />
-                </span>
-                <span>
-                  <small>{item.publicCode}</small>
-                  <h2>{item.customer.fullName}</h2>
-                  <p>{item.serviceNames.join(" · ")}</p>
-                </span>
-                <b
-                  className={`operation-status operation-status--${item.status.toLowerCase()}`}
-                >
-                  {statusLabel(item.status)}
-                </b>
-              </header>
-              <div className="change-comparison">
-                <TimeBlock
-                  label="Mevcut randevu"
-                  startAt={item.currentStartAt}
-                  professional={item.currentProfessional.name}
-                />
-                <ArrowRight aria-hidden="true" />
-                <TimeBlock
-                  label="İstenen saat"
-                  startAt={item.requestedStartAt}
-                  professional={item.requestedProfessional.name}
-                  emphasized
-                />
-              </div>
-              {item.reason && (
-                <p className="operation-note">
-                  <strong>Müşteri notu</strong>
-                  {item.reason}
-                </p>
-              )}
-              <footer>
-                <span>
-                  <Clock3 /> {relativeTime(item.createdAt)}
-                </span>
-                {item.status === "PENDING" && (
-                  <div>
-                    <Button
-                      variant="outline"
-                      onClick={() => setDecision({ item, kind: "REJECT" })}
-                    >
-                      <X /> Reddet
-                    </Button>
-                    <Button
-                      onClick={() => setDecision({ item, kind: "APPROVE" })}
-                    >
-                      <Check /> Onayla
-                    </Button>
-                  </div>
+
+        {loading ? (
+          <div className="admin-skeleton admin-skeleton--cards" />
+        ) : items.length ? (
+          <div className="change-request-list">
+            {items.map((item) => (
+              <article className="change-request-card" key={item.id}>
+                <header>
+                  <span className="change-request-card__mark" aria-hidden="true">
+                    <CalendarClock />
+                  </span>
+                  <span className="change-request-card__identity">
+                    <small>{item.publicCode}</small>
+                    <strong>{item.customer.fullName}</strong>
+                    <span>{item.serviceNames.join(" · ")}</span>
+                  </span>
+                  <b
+                    className={`change-request-card__status is-${item.status.toLowerCase()}`}
+                  >
+                    {statusLabel(item.status)}
+                  </b>
+                </header>
+                <div className="change-comparison">
+                  <TimeBlock
+                    label="Mevcut randevu"
+                    startAt={item.currentStartAt}
+                    professional={item.currentProfessional.name}
+                  />
+                  <ArrowRight aria-hidden="true" />
+                  <TimeBlock
+                    label="İstenen saat"
+                    startAt={item.requestedStartAt}
+                    professional={item.requestedProfessional.name}
+                    emphasized
+                  />
+                </div>
+                {item.reason && (
+                  <p className="change-request-card__note">
+                    <strong>Müşteri notu</strong>
+                    {item.reason}
+                  </p>
                 )}
-              </footer>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <div className="admin-empty-state">
-          <span>
-            <CalendarClock />
-          </span>
-          <strong>Bu durumda talep yok</strong>
-          <p>
-            Yeni bir talep geldiğinde burada karşılaştırmalı olarak görünecek.
-          </p>
-        </div>
-      )}
+                <footer>
+                  <span>
+                    <Clock3 /> {relativeTime(item.createdAt)}
+                  </span>
+                  {item.status === "PENDING" && (
+                    <div>
+                      <Button
+                        variant="outline"
+                        onClick={() => setDecision({ item, kind: "REJECT" })}
+                      >
+                        <X /> Reddet
+                      </Button>
+                      <Button
+                        onClick={() => setDecision({ item, kind: "APPROVE" })}
+                      >
+                        <Check /> Onayla
+                      </Button>
+                    </div>
+                  )}
+                </footer>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="service-catalog-empty">
+            <CalendarClock size={26} weight="duotone" aria-hidden="true" />
+            <strong>{emptyStateCopy(status).title}</strong>
+            <p>{emptyStateCopy(status).body}</p>
+          </div>
+        )}
+      </section>
 
       <AlertDialog
         open={Boolean(decision)}
@@ -289,6 +284,31 @@ function statusLabel(status: AdminChangeRequest["status"]) {
     EXPIRED: "Süresi doldu",
     CANCELLED: "İptal edildi",
   }[status];
+}
+function emptyStateCopy(status: string) {
+  return (
+    {
+      PENDING: {
+        title: "Bekleyen talep yok",
+        body: "Yeni bir değişiklik talebi geldiğinde burada karşılaştırmalı olarak görünecek.",
+      },
+      APPROVED: {
+        title: "Onaylanan talep yok",
+        body: "Onayladığınız değişiklik talepleri burada listelenecek.",
+      },
+      REJECTED: {
+        title: "Reddedilen talep yok",
+        body: "Reddettiğiniz değişiklik talepleri burada listelenecek.",
+      },
+      EXPIRED: {
+        title: "Süresi dolan talep yok",
+        body: "Yanıtsız kalıp süresi dolan talepler burada listelenecek.",
+      },
+    }[status] ?? {
+      title: "Bu durumda talep yok",
+      body: "Yeni bir talep geldiğinde burada karşılaştırmalı olarak görünecek.",
+    }
+  );
 }
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("tr-TR", {

@@ -396,6 +396,33 @@ export interface AdminWaitlistEntry {
   updatedAt: string;
 }
 
+export interface AdminWaitlistSuggestion {
+  id: string;
+  startAt: string;
+  endAt: string;
+  capacityMinutes: number;
+  offerTtlMinutes: number;
+  professional: { id: string; name: string } | null;
+  sourceType: string;
+  createdAt: string;
+  candidates: Array<{
+    entryId: string;
+    fullName: string;
+    phoneMasked: string;
+    services: Array<{ id: string; name: string }>;
+    requestedProfessional: { id: string; name: string } | null;
+    offeredProfessional: { id: string; name: string };
+    dateFrom: string;
+    dateTo: string;
+    startMinute: number;
+    endMinute: number;
+    waitingSince: string;
+    failedOfferCount: number;
+    totalDurationMinutes: number;
+    totalPriceKurus: number;
+  }>;
+}
+
 export interface AdminBookingPolicy {
   id: string;
   branchId: string;

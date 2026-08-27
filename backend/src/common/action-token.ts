@@ -72,6 +72,15 @@ export function publicActionUrl(purpose: ActionTokenPurpose, token: string) {
   return `${base}/degerlendir/${encodeURIComponent(token)}`;
 }
 
+export function publicWaitlistOfferUrl(token: string) {
+  const base = (
+    process.env.PUBLIC_APP_URL ??
+    process.env.FRONTEND_URL?.split(',')[0] ??
+    'http://127.0.0.1:5173'
+  ).replace(/\/$/, '');
+  return `${base}/bekleme-listesi/teklif/${encodeURIComponent(token)}`;
+}
+
 function actionEncryptionKey() {
   const secret =
     process.env.ACTION_TOKEN_SECRET ??
