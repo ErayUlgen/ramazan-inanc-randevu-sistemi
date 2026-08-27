@@ -1207,3 +1207,20 @@ frontend sunucuları yeniden ayağa kaldırıldı, yarım kalan araştırma ajan
   İ/aria-label uyuşmazlığı, bir WCAG kontrast hatası, bir LCP gecikmesi ve
   bu oturumun kendi regresyonu (mobil marka bağlantısı) — hepsi canlı
   doğrulamayla yakalandı.
+
+## Özel GitHub depo kaydı — 27.08.2026
+
+- Projenin güncel kaynakları ve iki yerel checkpoint commit'i
+  `https://github.com/ErayUlgen/ramazan-inanc-randevu-sistemi` adresindeki
+  **private** depoya gönderildi. Yerel `master`, `origin/master` dalını takip
+  ediyor.
+- İlk push, `.github/workflows/quality.yml` dosyası nedeniyle GitHub tarafından
+  reddedildi; mevcut OAuth oturumunda `workflow` kapsamı yoktu. Dosyayı
+  çıkarmak yerine `gh auth refresh -h github.com -s workflow` ile gerekli izin
+  eklendi ve aynı commit eksiksiz gönderildi. Bu hata tekrar görülürse kalite
+  workflow'u silinmez veya ignore edilmez; önce `gh auth status` ile kapsamlar
+  kontrol edilir.
+- Gönderim öncesinde frontend lint, 13 dosyada 23 frontend testi, frontend
+  production build, 35 pakette 110 backend testi ve backend production build
+  başarılı tamamlandı. Gerçek `.env` dosyaları, PostgreSQL dump yedekleri,
+  bağımlılıklar ve `.playwright-mcp/` geçici çıktıları Git takibi dışındadır.
