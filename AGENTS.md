@@ -1224,3 +1224,59 @@ frontend sunucuları yeniden ayağa kaldırıldı, yarım kalan araştırma ajan
   production build, 35 pakette 110 backend testi ve backend production build
   başarılı tamamlandı. Gerçek `.env` dosyaları, PostgreSQL dump yedekleri,
   bağımlılıklar ve `.playwright-mcp/` geçici çıktıları Git takibi dışındadır.
+
+## Staj defteri kanıt arşivi — yarım kalan çalışma — 27.08.2026
+
+- Resmî staj defteri için `C:\Users\erayu\Documents\Staj Defteri Kaynakları\30_GUN_KANIT_ARSIVI`
+  altında `gun-01`–`gun-30` klasörleri oluşturuldu; Gmail'den indirilen 14 gün
+  sonu eki SHA-256 ile doğrulandı ve 30 günlük proje kronolojisi
+  `30_GUN_KANIT_MATRISI.md` dosyasına işlendi.
+- Gün 1–15 için tarihsel rapor sayfaları, gerçek ekran görüntüleri, kod kanıtları
+  ve mimari şemalar büyük ölçüde tamamlandı. Gün 16–18 için Masora/SATIR karar
+  şemaları hazır; bu günlere kaynak kod/karar belgesi kartları eklenmesi kaldı.
+- Gün 21–26 için gerçek Masora ekran görüntüleri hazır; her güne tarih doğrulanmış
+  kod kartlarının eklenmesi kaldı. Gün 27 eki render edildi; uygun sayfaların
+  arşive seçilmesi ve ses liderliği kod kanıtının eklenmesi kaldı.
+- Sonraki somut sıra: `tmp/build_missing_evidence.py` dosyasını SATIR kaynaklarını
+  da tanıyacak şekilde genişletmek; gün 16–18 ve 21–27 kod kartlarını üretip
+  görsel kontrol etmek; günlük `KANIT_MANIFESTI.md` dosyalarını hazırlamak;
+  matrisi güncellemek; ardından üniversitenin
+  `C:\Users\erayu\Downloads\BilgisayarMuhendisligiStajDefteri.docx` şablonunu
+  Verdana 10 ile doldurup bütün sayfaları render ederek doğrulamak.
+- Öğrenci fotoğrafı henüz kullanıcıdan gelmedi; bu, nihai staj defterindeki tek
+  bekleyen kişisel varlıktır.
+
+## Stajyer başvuru formu — aktif belge işi — 27.08.2026
+
+- Kullanıcı, `C:\Users\erayu\Desktop\Stajyer_Basvuru_Formu.docx` belgesinin,
+  stajın birinci gününde hazırlanmış gibi yalnız **gelecek zamanlı 30 günlük
+  Ramazan İnanç Hair Art randevu sistemi geliştirme planıyla** doldurulmasını
+  istedi. Belge gerçekleşen işleri raporlamayacak; planlanan çalışmaları günlere
+  bölerek anlatacak.
+- Bu belge işi tamamlanınca yukarıdaki staj defteri kanıt arşivi çalışmasına,
+  belirtilen somut sıradan devam edilecek.
+
+## Stajyer başvuru formu — tamamlandı — 27.08.2026
+
+- Kaynak şablon korunarak ayrıntılandırılmış doldurulmuş belge
+  `C:\Users\erayu\Desktop\Stajyer_Basvuru_Formu_Doldurulmus.docx` olarak
+  oluşturuldu. Öğrenci/staj bilgileri PDF referansıyla uyumlu biçimde
+  güncellendi; proje tanımı, teknik kapsam ve 30 iş günlük plan dört ayrıntılı
+  çalışma aşamasıyla dolduruldu. Plan gelecek zamanlı tutuldu; şablonun genel
+  kural ve örnek rapor sayfaları değiştirilmedi.
+- Belge Microsoft Word üzerinden PDF'e dönüştürülerek dört sayfası görsel
+  olarak incelendi. Haftalık başlıklardaki otomatik numaralandırma ile metin
+  çakışması düzeltildi; son render'da yerleşim, tablo taşması ve sayfa sonu
+  sorunu görülmedi. Kaynak dosyanın SHA-256 değeri düzenleme öncesi değerle
+  eşleşti; kaynak dosya değiştirilmedi.
+- Sonraki belge işi, yukarıdaki staj defteri kanıt arşivi sırasına dönmektir.
+
+## Yerel servisler yeniden başlatıldı — 27.08.2026
+
+- PostgreSQL konteyneri `5434` üzerinde sağlıklı durumdaydı; yeniden oluşturulmadı.
+- NestJS backend `3107` portunda, Vite frontend `5197` portunda çalışıyor.
+- Frontend'in backend'e bağlanması için Git dışında kalan
+  `frontend/.env.local` içinde `VITE_API_URL=http://127.0.0.1:3107/api`
+  tanımlıdır.
+- `http://127.0.0.1:3107/api/health`, `http://127.0.0.1:5197/` ve
+  `http://localhost:5197/` adresleri HTTP 200 ile doğrulandı.
